@@ -1,6 +1,60 @@
 import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { BehaviorSubject, Observable, tap } from 'rxjs';
+import { AuthRequest, AuthResponse, RegisterRequest, User } from '../models/user';
 
 @Injectable({
-  providedIn: 'root',
+  providedIn: 'root'
 })
-export class Auth {}
+export class AuthService {
+
+  private readonly API_URL = 'http://localhost:8080/api/auth';
+  private readonly TOKEN_KEY = 'sonora_token';
+  private readonly USER_KEY = 'sonora_user';
+
+  private currentUserSubject = new BehaviorSubject<User | null>(this.getUserFromStorage());
+  currentUser$ = this.currentUserSubject.asObservable();
+
+  constructor(private http: HttpClient) {}
+
+  register(request: RegisterRequest): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.API_URL}/register`, request).pipe(
+      tap(response => this.saveSession(response))
+    );
+  }
+
+  login(request: AuthRequest): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.API_URL}/login`, request).pipe(
+      tap(response => this.saveSession(response))
+    );
+  }
+
+  logout(): void {
+    localStorage.removeItem(this.TOKEN_KEY);
+    localStorage.removeItem(this.USER_KEY);
+    this.currentUserSubject.next(null);
+  }
+
+  getToken(): string | null {
+    return localStorage.getItem(this.TOKEN_KEY);
+  }
+
+  isLoggedIn(): boolean {
+    return this.getToken() !== null;
+  }
+
+  isAdmin(): boolean {
+    return this.currentUserSubject.value?.role === 'ADMIN';
+  }
+
+  private saveSession(response: AuthResponse): void {
+    localStorage.setItem(this.TOKEN_KEY, response.token);
+    localStorage.setItem(this.USER_KEY, JSON.stringify(response.user));
+    this.currentUserSubject.next(response.user);
+  }
+
+  private getUserFromStorage(): User | null {
+    const user = localStorage.getItem(this.USER_KEY);
+    return user ? JSON.parse(user) : null;
+  }
+}
