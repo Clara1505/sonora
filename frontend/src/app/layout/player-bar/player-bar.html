@@ -1,1 +1,52 @@
-<p>player-bar works!</p>
+@if (currentTrack) {
+  <div class="player-bar">
+
+    <!-- Info track -->
+    <div class="track-info">
+      <div class="track-cover">
+        <mat-icon>music_note</mat-icon>
+      </div>
+      <div class="track-details">
+        <span class="track-title">{{ currentTrack.title }}</span>
+        <span class="track-artist">{{ currentTrack.artist.name }}</span>
+      </div>
+      <button mat-icon-button class="favorite-btn">
+        <mat-icon>favorite_border</mat-icon>
+      </button>
+    </div>
+
+    <!-- Contrôles -->
+    <div class="player-controls">
+      <div class="control-buttons">
+        <button mat-icon-button matTooltip="Précédent">
+          <mat-icon>skip_previous</mat-icon>
+        </button>
+        <button mat-fab color="primary" class="play-btn" (click)="togglePlay()">
+          <mat-icon>{{ isPlaying ? 'pause' : 'play_arrow' }}</mat-icon>
+        </button>
+        <button mat-icon-button matTooltip="Suivant">
+          <mat-icon>skip_next</mat-icon>
+        </button>
+      </div>
+
+      <div class="progress-bar">
+        <span class="time">{{ formatTime(currentTime) }}</span>
+        <mat-slider class="progress-slider" [max]="currentTrack.duration || 0" [min]="0" [step]="1">
+          <input matSliderThumb [(value)]="currentTime">
+        </mat-slider>
+        <span class="time">{{ formatTime(currentTrack.duration || 0) }}</span>
+      </div>
+    </div>
+
+    <!-- Volume -->
+    <div class="volume-controls">
+      <button mat-icon-button (click)="toggleMute()">
+        <mat-icon>{{ isMuted || volume === 0 ? 'volume_off' : volume < 50 ? 'volume_down' : 'volume_up' }}</mat-icon>
+      </button>
+      <mat-slider class="volume-slider" [max]="100" [min]="0" [step]="1">
+        <input matSliderThumb [(value)]="volume">
+      </mat-slider>
+    </div>
+
+  </div>
+}

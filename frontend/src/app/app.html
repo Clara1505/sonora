@@ -3,3 +3,6 @@
 <main class="content">
   <router-outlet />
 </main>
+@if (!isAuthPage()) {
+  <app-player-bar />
+}
