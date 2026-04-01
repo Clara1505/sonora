@@ -9,22 +9,22 @@ export const routes: Routes = [
   {
     path: 'catalogue',
     loadComponent: () => import('./pages/catalogue/catalogue').then(m => m.Catalogue),
-    //canActivate: [authGuard],
+    canActivate: [authGuard],
   },
   {
     path: 'tracks/:id',
     loadComponent: () => import('./pages/track-detail/track-detail').then(m => m.TrackDetail),
-    //canActivate: [authGuard],
+    canActivate: [authGuard],
   },
   {
     path: 'playlists',
     loadComponent: () => import('./pages/playlist/playlist').then(m => m.PlaylistPage),
-    //canActivate: [authGuard],
+    canActivate: [authGuard],
   },
   {
     path: 'profile',
     loadComponent: () => import('./pages/profile/profile').then(m => m.Profile),
-    //canActivate: [authGuard],
+    canActivate: [authGuard],
   },
   {
     path: 'login',
