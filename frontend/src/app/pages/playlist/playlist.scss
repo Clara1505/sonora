@@ -1,0 +1,209 @@
+.playlist-container {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  height: calc(100vh - 64px);
+  overflow: hidden;
+
+  // ── Sidebar ──────────────────────────────────
+  .playlist-sidebar {
+    border-right: 1px solid #333;
+    overflow-y: auto;
+    padding: 1.5rem 1rem;
+
+    .sidebar-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+
+      h2 { margin: 0; font-size: 1.1rem; }
+    }
+
+    .create-form {
+      background: #1e1e2e;
+      border-radius: 12px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+
+      .full-width { width: 100%; }
+
+      .form-actions {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+      }
+    }
+
+    .playlist-list {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .playlist-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s;
+
+      &:hover { background: #1e1e2e; }
+      &.active { background: #2a1a4e; }
+
+      .playlist-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        background: #333;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+
+        &.smart { background: linear-gradient(135deg, #7c4dff, #e040fb); }
+
+        mat-icon { color: white; font-size: 1.2rem; }
+      }
+
+      .playlist-info {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+
+        .name {
+          font-size: 0.9rem;
+          font-weight: 500;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .meta { font-size: 0.75rem; color: #888; }
+      }
+    }
+  }
+
+  // ── Content ──────────────────────────────────
+  .playlist-content {
+    overflow-y: auto;
+    padding: 2rem;
+
+    .playlist-header {
+      display: flex;
+      gap: 2rem;
+      align-items: flex-end;
+      margin-bottom: 2rem;
+
+      .playlist-cover {
+        width: 160px;
+        height: 160px;
+        border-radius: 16px;
+        background: #333;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+
+        &.smart { background: linear-gradient(135deg, #7c4dff, #e040fb); }
+
+        mat-icon {
+          font-size: 4rem;
+          width: 4rem;
+          height: 4rem;
+          color: white;
+        }
+      }
+
+      .playlist-details {
+        .type-badge {
+          font-size: 0.75rem;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+          color: #888;
+
+          &.smart { color: #7c4dff; }
+        }
+
+        h1 { font-size: 2rem; margin: 0.5rem 0; }
+
+        p { color: #888; margin: 0 0 1rem; }
+
+        .playlist-actions {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+      }
+    }
+
+    .tracks-list {
+      display: flex;
+      flex-direction: column;
+
+      .track-row {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 10px 16px;
+        border-radius: 8px;
+        transition: background 0.2s;
+
+        &:hover { background: #1e1e2e; }
+
+        .track-number {
+          width: 24px;
+          text-align: center;
+          color: #888;
+          font-size: 0.875rem;
+        }
+
+        .track-info {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          min-width: 0;
+
+          .track-title {
+            font-weight: 500;
+            font-size: 0.9rem;
+          }
+
+          .track-artist {
+            font-size: 0.8rem;
+            color: #888;
+          }
+        }
+
+        .genre-chip {
+          padding: 2px 10px;
+          border-radius: 12px;
+          font-size: 0.75rem;
+          background: #333;
+          color: #ccc;
+        }
+
+        .track-duration {
+          color: #888;
+          font-size: 0.875rem;
+          min-width: 40px;
+          text-align: right;
+        }
+      }
+
+      .empty-playlist {
+        text-align: center;
+        padding: 4rem;
+        color: #888;
+
+        mat-icon {
+          font-size: 3rem;
+          width: 3rem;
+          height: 3rem;
+          margin-bottom: 1rem;
+        }
+      }
+    }
+  }
+}
