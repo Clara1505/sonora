@@ -1,1 +1,122 @@
-<p>playlist works!</p>
+<div class="playlist-container">
+
+  <div class="playlist-sidebar">
+    <div class="sidebar-header">
+      <h2>Mes Playlists</h2>
+      <button mat-icon-button (click)="showCreateForm = !showCreateForm" matTooltip="Nouvelle playlist">
+        <mat-icon>add</mat-icon>
+      </button>
+    </div>
+
+    @if (showCreateForm) {
+      <div class="create-form">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Nom de la playlist</mat-label>
+          <input matInput [(ngModel)]="newPlaylistName" placeholder="Ma playlist...">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Type</mat-label>
+          <mat-select [(ngModel)]="newPlaylistType">
+            <mat-option value="MANUAL">Manuelle</mat-option>
+            <mat-option value="SMART">Smart Playlist</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        @if (newPlaylistType === 'SMART') {
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Mood</mat-label>
+            <mat-select [(ngModel)]="smartMood">
+              @for (mood of moods; track mood) {
+                <mat-option [value]="mood">{{ mood }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Genre</mat-label>
+            <mat-select [(ngModel)]="smartGenre">
+              @for (genre of genres; track genre) {
+                <mat-option [value]="genre">{{ genre }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        }
+
+        <div class="form-actions">
+          <button mat-stroked-button (click)="showCreateForm = false">Annuler</button>
+          <button mat-raised-button color="primary" (click)="createPlaylist()">Créer</button>
+        </div>
+      </div>
+    }
+
+    <div class="playlist-list">
+      @for (playlist of playlists; track playlist.id) {
+        <div class="playlist-item"
+             [class.active]="selectedPlaylist?.id === playlist.id"
+             (click)="selectPlaylist(playlist)">
+          <div class="playlist-icon" [class.smart]="playlist.type === 'SMART'">
+            <mat-icon>{{ playlist.type === 'SMART' ? 'auto_awesome' : 'queue_music' }}</mat-icon>
+          </div>
+          <div class="playlist-info">
+            <span class="name">{{ playlist.name }}</span>
+            <span class="meta">{{ playlist.tracks.length }} titre(s)</span>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+
+  <div class="playlist-content">
+    @if (selectedPlaylist) {
+      <div class="playlist-header">
+        <div class="playlist-cover" [class.smart]="selectedPlaylist.type === 'SMART'">
+          <mat-icon>{{ selectedPlaylist.type === 'SMART' ? 'auto_awesome' : 'queue_music' }}</mat-icon>
+        </div>
+        <div class="playlist-details">
+          <span class="type-badge" [class.smart]="selectedPlaylist.type === 'SMART'">
+            {{ selectedPlaylist.type === 'SMART' ? 'Smart Playlist' : 'Playlist Manuelle' }}
+          </span>
+          <h1>{{ selectedPlaylist.name }}</h1>
+          <p>{{ selectedPlaylist.tracks.length }} titre(s) • {{ getTotalDuration(selectedPlaylist) }}</p>
+          <div class="playlist-actions">
+            <button mat-fab color="primary">
+              <mat-icon>play_arrow</mat-icon>
+            </button>
+            <button mat-icon-button>
+              <mat-icon>shuffle</mat-icon>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="tracks-list">
+        @for (track of selectedPlaylist.tracks; track track.id; let i = $index) {
+          <div class="track-row">
+            <span class="track-number">{{ i + 1 }}</span>
+            <div class="track-info">
+              <span class="track-title">{{ track.title }}</span>
+              <span class="track-artist">{{ track.artist.name }}</span>
+            </div>
+            @if (track.genre) {
+              <span class="genre-chip">{{ track.genre }}</span>
+            }
+            <span class="track-duration">{{ formatDuration(track.duration || 0) }}</span>
+            <button mat-icon-button>
+              <mat-icon>play_circle</mat-icon>
+            </button>
+          </div>
+        }
+
+        @if (selectedPlaylist.tracks.length === 0) {
+          <div class="empty-playlist">
+            <mat-icon>music_off</mat-icon>
+            <p>Cette playlist est vide</p>
+            <a mat-stroked-button routerLink="/catalogue">Ajouter des titres</a>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+</div>
