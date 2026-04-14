@@ -4,6 +4,7 @@ import com.sonora.sonora.dto.TrackDto;
 import com.sonora.sonora.exception.ResourceNotFoundException;
 import com.sonora.sonora.model.enums.Genre;
 import com.sonora.sonora.model.enums.Mood;
+import com.sonora.sonora.security.JwtService;
 import com.sonora.sonora.service.StreamingService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,7 @@ import org.springframework.http.*;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -27,6 +29,9 @@ class StreamingControllerTest {
 
     @Autowired  private MockMvc mockMvc;
     @MockitoBean private StreamingService streamingService;
+
+    @MockBean
+    private JwtService jwtService;
 
     @Test
     @WithMockUser(username = "user@sonora.com")
