@@ -6,6 +6,7 @@ import com.sonora.sonora.dto.TrackDto;
 import com.sonora.sonora.exception.ResourceNotFoundException;
 import com.sonora.sonora.model.enums.Genre;
 import com.sonora.sonora.model.enums.Mood;
+import com.sonora.sonora.security.JwtService;
 import com.sonora.sonora.service.TrackService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +38,9 @@ class TrackControllerTest {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @MockBean
+    private JwtService jwtService;
 
     @MockBean
     private TrackService trackService;

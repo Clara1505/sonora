@@ -57,9 +57,7 @@ export class Login {
       },
       error: (err) => {
         this.isLoading = false;
-        this.errorMessage = err.status === 401
-          ? 'Email ou mot de passe incorrect'
-          : 'Une erreur est survenue, réessayez plus tard';
+        this.errorMessage = err.error?.message ?? 'Une erreur est survenue';
       }
     });
   }
