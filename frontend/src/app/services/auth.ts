@@ -49,8 +49,16 @@ export class AuthService {
 
   private saveSession(response: AuthResponse): void {
     localStorage.setItem(this.TOKEN_KEY, response.token);
-    localStorage.setItem(this.USER_KEY, JSON.stringify(response.user));
-    this.currentUserSubject.next(response.user);
+    localStorage.setItem(this.USER_KEY, JSON.stringify({
+      email: response.email,
+      role: response.role
+    }));
+    this.currentUserSubject.next({
+      id: 0, // on n'a pas l'id dans la réponse
+      email: response.email,
+      role: response.role,
+      createdAt: ''
+    });
   }
 
   private getUserFromStorage(): User | null {
