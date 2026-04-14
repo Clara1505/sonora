@@ -1,0 +1,67 @@
+# ===========================
+# Java / Maven
+# ===========================
+target/
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+
+# ===========================
+# Spring Boot
+# ===========================
+application-local.properties
+application-local.yml
+*.env
+
+# ===========================
+# IDE - IntelliJ IDEA
+# ===========================
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+
+# ===========================
+# IDE - Eclipse / STS
+# ===========================
+.eclipse/
+.settings/
+.classpath
+.project
+.springBeans
+.sts4-cache
+
+# ===========================
+# IDE - VS Code
+# ===========================
+.vscode/
+
+# ===========================
+# OS
+# ===========================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ===========================
+# Logs
+# ===========================
+*.log
+logs/
+spring.log
+
+# ===========================
+# Secrets / Config sensibles
+# ===========================
+*.env
+.env.*
+secrets.yml
+secrets.properties

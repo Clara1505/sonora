@@ -1,8 +1,12 @@
 FROM eclipse-temurin:21-jdk-alpine AS build
 WORKDIR /app
+
+COPY mvnw .
+COPY .mvn ./.mvn
 COPY pom.xml .
 COPY src ./src
-RUN ./mvnw package -DskipTests --no-transfer-progress
+
+RUN chmod +x mvnw && ./mvnw -DskipTests --no-transfer-progress package
 
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app

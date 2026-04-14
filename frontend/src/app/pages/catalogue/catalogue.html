@@ -1,0 +1,104 @@
+<div class="catalogue-container">
+  <div class="catalogue-header">
+    <h1>Catalogue Musical</h1>
+    <p>{{ filteredTracks.length }} titre(s) disponible(s)</p>
+  </div>
+
+  <!-- Filtres -->
+  <div class="filters">
+    <mat-form-field appearance="outline" class="search-field">
+      <mat-label>Rechercher...</mat-label>
+      <input matInput [(ngModel)]="searchQuery" (ngModelChange)="applyFilters()" placeholder="Titre, artiste, album">
+      <mat-icon matSuffix>search</mat-icon>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Genre</mat-label>
+      <mat-select [(ngModel)]="selectedGenre" (ngModelChange)="applyFilters()">
+        <mat-option value="">Tous</mat-option>
+        @for (genre of genres; track genre) {
+          <mat-option [value]="genre">{{ genre }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Mood</mat-label>
+      <mat-select [(ngModel)]="selectedMood" (ngModelChange)="applyFilters()">
+        <mat-option value="">Tous</mat-option>
+        @for (mood of moods; track mood) {
+          <mat-option [value]="mood">{{ mood }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <button mat-stroked-button (click)="resetFilters()">
+      <mat-icon>clear</mat-icon>
+      Réinitialiser
+    </button>
+  </div>
+
+  <!-- Loading -->
+  @if (isLoading) {
+    <div class="loading">
+      <mat-spinner></mat-spinner>
+    </div>
+  }
+
+  <!-- Grille de tracks -->
+  @if (!isLoading) {
+    <div class="tracks-grid">
+      @for (track of filteredTracks; track track.id) {
+        <mat-card class="track-card">
+          <mat-card-header>
+            <div class="track-cover" mat-card-avatar>
+              <mat-icon>music_note</mat-icon>
+            </div>
+            <mat-card-title>{{ track.title }}</mat-card-title>
+            <mat-card-subtitle>{{ track.artist.name }}</mat-card-subtitle>
+          </mat-card-header>
+
+          <mat-card-content>
+            <p class="album-name">{{ track.album?.title }}</p>
+            <div class="track-meta">
+              @if (track.genre) {
+                <span class="genre-chip" [style.background-color]="getGenreColor(track.genre)">
+                  {{ track.genre }}
+                </span>
+              }
+              @if (track.mood) {
+                <span class="mood-chip">{{ track.mood }}</span>
+              }
+              @if (track.duration) {
+                <span class="duration">
+                  <mat-icon>schedule</mat-icon>
+                  {{ formatDuration(track.duration) }}
+                </span>
+              }
+            </div>
+          </mat-card-content>
+
+          <mat-card-actions>
+            <button mat-icon-button color="primary" title="Écouter">
+              <mat-icon>play_circle</mat-icon>
+            </button>
+            <button mat-icon-button title="Favoris">
+              <mat-icon>favorite_border</mat-icon>
+            </button>
+            <button mat-icon-button [routerLink]="['/tracks', track.id]" title="Détails">
+              <mat-icon>info</mat-icon>
+            </button>
+          </mat-card-actions>
+        </mat-card>
+      }
+
+      @if (filteredTracks.length === 0) {
+        <div class="empty-state">
+          <mat-icon>search_off</mat-icon>
+          <p>Aucun titre ne correspond à votre recherche</p>
+          <button mat-stroked-button (click)="resetFilters()">Réinitialiser les filtres</button>
+        </div>
+      }
+    </div>
+  }
+</div>

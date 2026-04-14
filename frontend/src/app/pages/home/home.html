@@ -1,0 +1,59 @@
+<div class="home-container">
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-content">
+      <h1>🎵 Bienvenue sur <span class="brand">Sonora</span></h1>
+      <p class="hero-subtitle">
+        Découvrez, écoutez et organisez votre musique.<br>
+        Laissez-vous guider par vos moods.
+      </p>
+
+      @if (isLoggedIn) {
+        <div class="hero-actions">
+          <a mat-raised-button color="primary" routerLink="/catalogue">
+            <mat-icon>library_music</mat-icon>
+            Explorer le catalogue
+          </a>
+          <a mat-stroked-button routerLink="/playlists">
+            <mat-icon>queue_music</mat-icon>
+            Mes playlists
+          </a>
+        </div>
+      } @else {
+        <div class="hero-actions">
+          <a mat-raised-button color="primary" routerLink="/register">
+            <mat-icon>person_add</mat-icon>
+            Créer un compte
+          </a>
+          <a mat-stroked-button routerLink="/login">
+            Se connecter
+          </a>
+        </div>
+      }
+    </div>
+
+    <div class="hero-visual">
+      <div class="vinyl">
+        <mat-icon>album</mat-icon>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="features">
+    <h2>Tout ce dont vous avez besoin</h2>
+    <div class="features-grid">
+      @for (feature of features; track feature.title) {
+        <mat-card class="feature-card">
+          <mat-card-content>
+            <mat-icon class="feature-icon">{{ feature.icon }}</mat-icon>
+            <h3>{{ feature.title }}</h3>
+            <p>{{ feature.description }}</p>
+          </mat-card-content>
+        </mat-card>
+      }
+    </div>
+  </section>
+
+</div>

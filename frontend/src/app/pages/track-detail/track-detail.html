@@ -1,0 +1,81 @@
+<div class="track-detail-container">
+
+  <a mat-button routerLink="/catalogue" class="back-btn">
+    <mat-icon>arrow_back</mat-icon>
+    Retour au catalogue
+  </a>
+
+  @if (isLoading) {
+    <div class="loading">Chargement...</div>
+  }
+
+  @if (!isLoading && !track) {
+    <div class="not-found">
+      <mat-icon>music_off</mat-icon>
+      <h2>Titre introuvable</h2>
+      <a mat-raised-button color="primary" routerLink="/catalogue">Retour au catalogue</a>
+    </div>
+  }
+
+  @if (!isLoading && track) {
+    <div class="track-detail">
+
+      <!-- Header -->
+      <div class="track-header">
+        <div class="track-cover">
+          <mat-icon>music_note</mat-icon>
+        </div>
+
+        <div class="track-info">
+          <h1>{{ track.title }}</h1>
+          <h2>{{ track.artist.name }}</h2>
+          <p class="album">{{ track.album?.title }} • {{ track.album?.releaseYear }}</p>
+
+          <div class="track-tags">
+            @if (track.genre) {
+              <span class="chip genre">{{ track.genre }}</span>
+            }
+            @if (track.mood) {
+              <span class="chip mood">{{ track.mood }}</span>
+            }
+            @if (track.duration) {
+              <span class="chip duration">
+                <mat-icon>schedule</mat-icon>
+                {{ formatDuration(track.duration) }}
+              </span>
+            }
+          </div>
+
+          <div class="track-actions">
+            <button mat-fab color="primary">
+              <mat-icon>play_arrow</mat-icon>
+            </button>
+            <button mat-icon-button (click)="toggleFavorite()">
+              <mat-icon>{{ isFavorite ? 'favorite' : 'favorite_border' }}</mat-icon>
+            </button>
+            <button mat-icon-button>
+              <mat-icon>playlist_add</mat-icon>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <mat-divider></mat-divider>
+
+      <!-- Artiste -->
+      <div class="artist-section">
+        <h3>À propos de l'artiste</h3>
+        <div class="artist-card">
+          <div class="artist-avatar">
+            <mat-icon>person</mat-icon>
+          </div>
+          <div>
+            <h4>{{ track.artist.name }}</h4>
+            <p>{{ track.artist.bio || 'Aucune biographie disponible.' }}</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  }
+</div>

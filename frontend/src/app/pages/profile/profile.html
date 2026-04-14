@@ -1,0 +1,76 @@
+<div class="profile-container">
+
+  <!-- Header profil -->
+  <div class="profile-header">
+    <div class="avatar">
+      <mat-icon>account_circle</mat-icon>
+    </div>
+    <div class="user-info">
+      <h1>{{ currentUser?.email }}</h1>
+      <span class="role-badge" [class.admin]="currentUser?.role === 'ADMIN'">
+        {{ currentUser?.role }}
+      </span>
+      <p class="member-since">Membre depuis {{ currentUser?.createdAt | date:'MMMM yyyy' }}</p>
+    </div>
+    <button mat-stroked-button color="warn" (click)="logout()" class="logout-btn">
+      <mat-icon>logout</mat-icon>
+      Se déconnecter
+    </button>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-grid">
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <mat-icon>music_note</mat-icon>
+        <span class="stat-value">{{ stats.totalTracks }}</span>
+        <span class="stat-label">Titres écoutés</span>
+      </mat-card-content>
+    </mat-card>
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <mat-icon>queue_music</mat-icon>
+        <span class="stat-value">{{ stats.totalPlaylists }}</span>
+        <span class="stat-label">Playlists</span>
+      </mat-card-content>
+    </mat-card>
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <mat-icon>schedule</mat-icon>
+        <span class="stat-value">{{ stats.totalListeningTime }}</span>
+        <span class="stat-label">Temps d'écoute</span>
+      </mat-card-content>
+    </mat-card>
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <mat-icon>favorite</mat-icon>
+        <span class="stat-value">{{ stats.favoriteGenre }}</span>
+        <span class="stat-label">Genre favori</span>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Historique -->
+  <div class="history-section">
+    <h2>Historique d'écoute</h2>
+    <div class="history-list">
+      @for (entry of history; track entry.id) {
+        <div class="history-row">
+          <div class="track-cover">
+            <mat-icon>music_note</mat-icon>
+          </div>
+          <div class="track-info">
+            <span class="track-title">{{ entry.track.title }}</span>
+            <span class="track-artist">{{ entry.track.artist.name }}</span>
+          </div>
+          @if (entry.track.genre) {
+            <span class="genre-chip">{{ entry.track.genre }}</span>
+          }
+          <span class="played-at">{{ formatDate(entry.playedAt) }}</span>
+          <span class="duration">{{ formatDuration(entry.durationListened || 0) }}</span>
+        </div>
+      }
+    </div>
+  </div>
+
+</div>

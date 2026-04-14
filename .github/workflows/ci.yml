@@ -1,5 +1,9 @@
 name: CI/CD Sonora
 
+permissions:
+  contents: read
+  packages: write
+
 on:
   push:
     branches: [dev, main]
@@ -7,10 +11,45 @@ on:
     branches: [dev, main]
 
 jobs:
+
   # ─── Étape 1 : Backend ───────────────────────────────────────
   backend:
     name: Build & Test Backend
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15.1
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: sonora
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      kafka:
+        image: apache/kafka:4.2.0
+        env:
+          KAFKA_NODE_ID: 0
+          KAFKA_PROCESS_ROLES: broker,controller
+          KAFKA_CLUSTER_ID: "Mk3OEYBSD34fcwNTJENDM2Qk"
+          KAFKA_LISTENERS: BROKER://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+          KAFKA_ADVERTISED_LISTENERS: BROKER://localhost:9092
+          KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: BROKER:PLAINTEXT,CONTROLLER:PLAINTEXT
+          KAFKA_INTER_BROKER_LISTENER_NAME: BROKER
+          KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+          KAFKA_CONTROLLER_QUORUM_VOTERS: "0@localhost:9093"
+          KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+          KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+          KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+          KAFKA_DEFAULT_REPLICATION_FACTOR: 1
+          KAFKA_NUM_PARTITIONS: 1
+        ports:
+          - 9092:9092
+
     steps:
       - uses: actions/checkout@v4
 
@@ -59,28 +98,31 @@ jobs:
 
   # ─── Étape 3 : Docker (push seulement) ──────────────────────
   docker:
-    name: Build & Push Docker
-    runs-on: ubuntu-latest
-    needs: [backend, frontend]
-    if: github.event_name == 'push'
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Login GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build & Push image Spring Boot
-        uses: docker/build-push-action@v5
-        with:
-          context: ./backend
-          push: true
-          tags: |
-            ghcr.io/${{ github.repository }}/sonora-backend:${{ github.sha }}
-            ghcr.io/${{ github.repository }}/sonora-backend:latest
+      name: Build & Push Docker
+      runs-on: ubuntu-latest
+      needs: [backend, frontend]
+      if: github.event_name == 'push'
+      steps:
+        - uses: actions/checkout@v4
+  
+        - name: Login GitHub Container Registry
+          uses: docker/login-action@v3
+          with:
+            registry: ghcr.io
+            username: ${{ github.actor }}
+            password: ${{ secrets.GITHUB_TOKEN }}
+  
+        - name: Compute lowercase image repo
+          run: echo "IMAGE_REPO=${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
+  
+        - name: Build & Push image Spring Boot
+          uses: docker/build-push-action@v5
+          with:
+            context: ./backend
+            push: true
+            tags: |
+              ghcr.io/${{ env.IMAGE_REPO }}/sonora-backend:${{ github.sha }}
+              ghcr.io/${{ env.IMAGE_REPO }}/sonora-backend:latest
 
   # ─── Étape 4 : Déploiement (main seulement) ──────────────────
   deploy:

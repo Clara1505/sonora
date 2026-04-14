@@ -1,0 +1,77 @@
+<div class="register-container">
+  <mat-card class="register-card">
+    <mat-card-header>
+      <mat-card-title>
+        <h1>🎵 Sonora</h1>
+        <p class="subtitle">Créer un compte</p>
+      </mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Email</mat-label>
+          <input matInput type="email" formControlName="email" placeholder="exemple@email.com">
+          <mat-icon matSuffix>email</mat-icon>
+          @if (registerForm.get('email')?.hasError('required') && registerForm.get('email')?.touched) {
+            <mat-error>L'email est requis</mat-error>
+          }
+          @if (registerForm.get('email')?.hasError('email') && registerForm.get('email')?.touched) {
+            <mat-error>Email invalide</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Mot de passe</mat-label>
+          <input matInput [type]="hidePassword ? 'password' : 'text'" formControlName="password">
+          <button mat-icon-button matSuffix type="button" (click)="hidePassword = !hidePassword">
+            <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+          </button>
+          @if (registerForm.get('password')?.hasError('required') && registerForm.get('password')?.touched) {
+            <mat-error>Le mot de passe est requis</mat-error>
+          }
+          @if (registerForm.get('password')?.hasError('minlength') && registerForm.get('password')?.touched) {
+            <mat-error>6 caractères minimum</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Confirmer le mot de passe</mat-label>
+          <input matInput [type]="hideConfirm ? 'password' : 'text'" formControlName="confirmPassword">
+          <button mat-icon-button matSuffix type="button" (click)="hideConfirm = !hideConfirm">
+            <mat-icon>{{ hideConfirm ? 'visibility_off' : 'visibility' }}</mat-icon>
+          </button>
+          @if (registerForm.hasError('passwordMismatch') && registerForm.get('confirmPassword')?.touched) {
+            <mat-error>Les mots de passe ne correspondent pas</mat-error>
+          }
+        </mat-form-field>
+
+        @if (errorMessage) {
+          <p class="error-message">{{ errorMessage }}</p>
+        }
+
+        <button
+          mat-raised-button
+          color="primary"
+          type="submit"
+          class="full-width submit-btn"
+          [disabled]="registerForm.invalid || isLoading">
+          @if (isLoading) {
+            <mat-spinner diameter="20"></mat-spinner>
+          } @else {
+            S'inscrire
+          }
+        </button>
+
+      </form>
+    </mat-card-content>
+
+    <mat-card-actions>
+      <p class="login-link">
+        Déjà un compte ?
+        <a routerLink="/login">Se connecter</a>
+      </p>
+    </mat-card-actions>
+  </mat-card>
+</div>
