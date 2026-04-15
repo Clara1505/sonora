@@ -19,6 +19,8 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -93,4 +95,17 @@ class StreamingControllerTest {
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value("Track not found: 99"));
     }
+
+        @Test
+        @WithMockUser(username = "user@sonora.com")
+        void markPlayed_shouldReturn202() throws Exception {
+                mockMvc.perform(post("/api/tracks/1/played")
+                                                .contentType(MediaType.APPLICATION_JSON)
+                                                .content("""
+                                                                {"durationListened":120}
+                                                                """))
+                                .andExpect(status().isAccepted());
+
+                verify(streamingService).publishTrackPlayed(eq(1L), eq("user@sonora.com"), eq(120));
+        }
 }
