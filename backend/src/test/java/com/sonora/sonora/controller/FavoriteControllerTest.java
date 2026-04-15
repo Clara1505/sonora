@@ -20,6 +20,9 @@ import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.doThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import com.sonora.sonora.security.JwtService;
+import org.springframework.boot.test.mock.mockito.MockBean;
+
 
 @WebMvcTest(FavoriteController.class)
 @AutoConfigureMockMvc(addFilters = false)
@@ -28,6 +31,8 @@ class FavoriteControllerTest {
     @Autowired  private MockMvc mockMvc;
     @MockitoBean private FavoriteService favoriteService;
 
+    @MockBean
+    private JwtService jwtService;
 
     @Test
     @WithMockUser(username = "user@sonora.com")
