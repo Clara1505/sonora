@@ -19,6 +19,8 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import com.sonora.sonora.security.JwtService;
+import org.springframework.boot.test.mock.mockito.MockBean;
 
 @WebMvcTest(StatsController.class)
 @AutoConfigureMockMvc(addFilters = false)
@@ -27,6 +29,8 @@ class StatsControllerTest {
     @Autowired   private MockMvc mockMvc;
     @MockitoBean private StatsService statsService;
 
+    @MockBean
+    private JwtService jwtService;
 
     @Test
     @WithMockUser
