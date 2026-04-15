@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sonora.sonora.dto.ArtistCreateUpdateDto;
 import com.sonora.sonora.dto.ArtistDto;
 import com.sonora.sonora.exception.ResourceNotFoundException;
+import com.sonora.sonora.security.JwtService;
 import com.sonora.sonora.service.ArtistService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +36,9 @@ class ArtistControllerTest {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @MockBean
+    private JwtService jwtService;
 
     @MockBean
     private ArtistService artistService;

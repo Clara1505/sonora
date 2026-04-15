@@ -141,7 +141,7 @@ services:
       KAFKA_BROKERS: "kafka-0:9092,kafka-1:9092,kafka-2:9092"
       SERVER_LISTENPORT: 8080
     ports:
-      - "8080:8080"
+      - "8081:8080"
     networks:
       - sonora-net
 

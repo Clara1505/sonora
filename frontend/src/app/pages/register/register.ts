@@ -70,9 +70,7 @@ export class Register {
       },
       error: (err) => {
         this.isLoading = false;
-        this.errorMessage = err.status === 409
-          ? 'Cet email est déjà utilisé'
-          : 'Une erreur est survenue, réessayez plus tard';
+        this.errorMessage = err.error?.message ?? 'Une erreur est survenue';
       }
     });
   }

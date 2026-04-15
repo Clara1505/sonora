@@ -55,11 +55,10 @@
               <mat-icon>music_note</mat-icon>
             </div>
             <mat-card-title>{{ track.title }}</mat-card-title>
-            <mat-card-subtitle>{{ track.artist.name }}</mat-card-subtitle>
+            <mat-card-subtitle>{{ getArtistName(track.artistId) }}</mat-card-subtitle>
           </mat-card-header>
 
           <mat-card-content>
-            <p class="album-name">{{ track.album?.title }}</p>
             <div class="track-meta">
               @if (track.genre) {
                 <span class="genre-chip" [style.background-color]="getGenreColor(track.genre)">
