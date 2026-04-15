@@ -1,16 +1,18 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSliderModule } from '@angular/material/slider';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { Track } from '../../models/track';
+import { PlayerService, PlayerState } from '../../services/player';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-player-bar',
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     MatIconModule,
     MatButtonModule,
     MatSliderModule,
@@ -19,31 +21,37 @@ import { Track } from '../../models/track';
   templateUrl: './player-bar.html',
   styleUrl: './player-bar.scss'
 })
-export class PlayerBar {
-  // Mock track pour le test visuel
-  currentTrack: Track | null = null;
+export class PlayerBar implements OnInit {
+  state: PlayerState | null = null;
 
-  isPlaying = false;
-  currentTime = 0;
-  volume = 80;
-  isMuted = false;
+  constructor(private playerService: PlayerService) {}
+
+  ngOnInit(): void {
+    this.playerService.state$.subscribe(state => {
+      this.state = state;
+    });
+  }
 
   togglePlay(): void {
-    this.isPlaying = !this.isPlaying;
+    this.playerService.togglePlay();
   }
 
   toggleMute(): void {
-    this.isMuted = !this.isMuted;
+    this.playerService.toggleMute();
+  }
+
+  onSeek(event: any): void {
+    this.playerService.seek(event.target.value);
+  }
+
+  onVolumeChange(event: any): void {
+    this.playerService.setVolume(event.target.value);
   }
 
   formatTime(seconds: number): string {
+    if (!seconds || isNaN(seconds)) return '0:00';
     const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
+    const s = Math.floor(seconds % 60);
     return `${m}:${s.toString().padStart(2, '0')}`;
-  }
-
-  get progressPercent(): number {
-    if (!this.currentTrack?.duration) return 0;
-    return (this.currentTime / this.currentTrack.duration) * 100;
   }
 }
