@@ -13,6 +13,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Genre, Mood } from '../../models/track';
 import { TrackService } from '../../services/track';
 import { ArtistService } from '../../services/artist';
+import { PlayerService } from '../../services/player';
 import { forkJoin } from 'rxjs';
 
 @Component({
@@ -49,7 +50,8 @@ export class Catalogue implements OnInit {
 
   constructor(
     private trackService: TrackService,
-    private artistService: ArtistService
+    private artistService: ArtistService,
+    private playerService: PlayerService
   ) {}
 
   ngOnInit(): void {
@@ -76,6 +78,14 @@ export class Catalogue implements OnInit {
 
   getArtistName(artistId: number): string {
     return this.artistMap.get(artistId) || 'Artiste inconnu';
+  }
+
+  playTrack(track: any): void {
+    this.playerService.play(
+      track.id,
+      track.title,
+      this.getArtistName(track.artistId)
+    );
   }
 
   applyFilters(): void {

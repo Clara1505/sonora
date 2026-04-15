@@ -1,5 +1,4 @@
 package com.sonora.sonora.controller;
-
 import com.sonora.sonora.dto.TrackDto;
 import com.sonora.sonora.dto.TrackUploadRequest;
 import com.sonora.sonora.service.StreamingService;
@@ -25,12 +24,10 @@ public class StreamingController {
 
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<TrackDto> upload(
-            @RequestPart("file")     MultipartFile file,
+            @RequestPart("file") MultipartFile file,
             @RequestPart("metadata") TrackUploadRequest request,
-            @AuthenticationPrincipal UserDetails userDetails) throws IOException {
-
-        TrackDto response = streamingService.uploadTrack(
-                file, request, userDetails.getUsername());
+            @AuthenticationPrincipal String email) throws IOException {
+        TrackDto response = streamingService.uploadTrack(file, request, email);
         return ResponseEntity.ok(response);
     }
 

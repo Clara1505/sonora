@@ -1,6 +1,100 @@
 import { Injectable } from '@angular/core';
+import { BehaviorSubject } from 'rxjs';
 
-@Injectable({
-  providedIn: 'root',
-})
-export class Player {}
+export interface PlayerState {
+  isPlaying: boolean;
+  currentTime: number;
+  duration: number;
+  volume: number;
+  isMuted: boolean;
+  trackId: number | null;
+  trackTitle: string;
+  artistName: string;
+}
+
+@Injectable({ providedIn: 'root' })
+export class PlayerService {
+  private audio = new Audio();
+  private readonly API_URL = 'http://localhost:8080/api/tracks';
+
+  private state: PlayerState = {
+    isPlaying: false,
+    currentTime: 0,
+    duration: 0,
+    volume: 80,
+    isMuted: false,
+    trackId: null,
+    trackTitle: '',
+    artistName: '',
+  };
+
+  private stateSubject = new BehaviorSubject<PlayerState>(this.state);
+  state$ = this.stateSubject.asObservable();
+
+  constructor() {
+    this.audio.volume = 0.8;
+
+    this.audio.ontimeupdate = () => {
+      this.updateState({ currentTime: this.audio.currentTime });
+    };
+
+    this.audio.ondurationchange = () => {
+      this.updateState({ duration: this.audio.duration });
+    };
+
+    this.audio.onended = () => {
+      this.updateState({ isPlaying: false, currentTime: 0 });
+    };
+
+    this.audio.onplay = () => {
+      this.updateState({ isPlaying: true });
+    };
+
+    this.audio.onpause = () => {
+      this.updateState({ isPlaying: false });
+    };
+  }
+
+  play(trackId: number, trackTitle: string, artistName: string): void {
+    const url = `${this.API_URL}/${trackId}/stream`;
+
+    if (this.state.trackId === trackId) {
+      // Même track — toggle play/pause
+      this.togglePlay();
+      return;
+    }
+
+    this.audio.src = url;
+    this.audio.load();
+    this.audio.play();
+    this.updateState({ trackId, trackTitle, artistName, currentTime: 0 });
+  }
+
+  togglePlay(): void {
+    if (this.audio.paused) {
+      this.audio.play();
+    } else {
+      this.audio.pause();
+    }
+  }
+
+  seek(time: number): void {
+    this.audio.currentTime = time;
+    this.updateState({ currentTime: time });
+  }
+
+  setVolume(volume: number): void {
+    this.audio.volume = volume / 100;
+    this.updateState({ volume, isMuted: volume === 0 });
+  }
+
+  toggleMute(): void {
+    this.audio.muted = !this.audio.muted;
+    this.updateState({ isMuted: this.audio.muted });
+  }
+
+  private updateState(partial: Partial<PlayerState>): void {
+    this.state = { ...this.state, ...partial };
+    this.stateSubject.next({ ...this.state });
+  }
+}
