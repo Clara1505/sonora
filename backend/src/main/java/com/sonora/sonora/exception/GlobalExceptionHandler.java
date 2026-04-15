@@ -44,7 +44,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)
-public ResponseEntity<ApiErrorResponse> handleMaxUploadSize(
+     public ResponseEntity<ApiErrorResponse> handleMaxUploadSize(
         MaxUploadSizeExceededException ex, HttpServletRequest request) {
     ApiErrorResponse body = new ApiErrorResponse(
             Instant.now(),
@@ -54,5 +54,19 @@ public ResponseEntity<ApiErrorResponse> handleMaxUploadSize(
             request.getRequestURI()
     );
     return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).body(body);
+    }
+
+    @ExceptionHandler(AlreadyFavoriteException.class)
+public ResponseEntity<ApiErrorResponse> handleAlreadyFavorite(
+        AlreadyFavoriteException ex, HttpServletRequest request) {
+    ApiErrorResponse body = new ApiErrorResponse(
+            Instant.now(),
+            HttpStatus.CONFLICT.value(),
+            HttpStatus.CONFLICT.getReasonPhrase(),
+            ex.getMessage(),
+            request.getRequestURI()
+    );
+    return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
 }
+
 }
