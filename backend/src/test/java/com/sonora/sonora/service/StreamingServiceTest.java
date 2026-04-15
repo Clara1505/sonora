@@ -5,6 +5,8 @@ import com.sonora.sonora.dto.TrackUploadRequest;
 import com.sonora.sonora.exception.ResourceNotFoundException;
 import com.sonora.sonora.kafka.TrackEventProducer;
 import com.sonora.sonora.kafka.TrackImportedEvent;
+import com.sonora.sonora.kafka.TrackPlayedEvent;
+import com.sonora.sonora.kafka.TrackPlayedProducer;
 import com.sonora.sonora.model.entity.Artist;
 import com.sonora.sonora.model.entity.Track;
 import com.sonora.sonora.repository.ArtistRepository;
@@ -36,6 +38,7 @@ class StreamingServiceTest {
     @Mock private TrackRepository    trackRepository;
     @Mock private ArtistRepository   artistRepository;
     @Mock private TrackEventProducer trackEventProducer;
+    @Mock private TrackPlayedProducer trackPlayedProducer;
     @InjectMocks private StreamingService streamingService;
 
     @TempDir Path tempDir;
@@ -130,5 +133,29 @@ class StreamingServiceTest {
 
         assertThatThrownBy(() -> streamingService.streamTrack(1L, new HttpHeaders()))
                 .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @Test
+    void publishTrackPlayed_withExistingTrack_shouldPublishKafkaEvent() {
+        when(trackRepository.existsById(10L)).thenReturn(true);
+
+        streamingService.publishTrackPlayed(10L, "user@sonora.com", 95);
+
+        ArgumentCaptor<TrackPlayedEvent> captor = ArgumentCaptor.forClass(TrackPlayedEvent.class);
+        verify(trackPlayedProducer).sendTrackPlayed(captor.capture());
+        assertThat(captor.getValue().getTrackId()).isEqualTo(10L);
+        assertThat(captor.getValue().getUserEmail()).isEqualTo("user@sonora.com");
+        assertThat(captor.getValue().getDurationListened()).isEqualTo(95);
+    }
+
+    @Test
+    void publishTrackPlayed_withUnknownTrack_shouldThrow404() {
+        when(trackRepository.existsById(99L)).thenReturn(false);
+
+        assertThatThrownBy(() -> streamingService.publishTrackPlayed(99L, "user@sonora.com", 95))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("99");
+
+        verify(trackPlayedProducer, never()).sendTrackPlayed(any());
     }
 }

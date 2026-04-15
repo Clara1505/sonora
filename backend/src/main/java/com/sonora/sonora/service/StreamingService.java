@@ -5,6 +5,8 @@ import com.sonora.sonora.dto.TrackUploadRequest;
 import com.sonora.sonora.exception.ResourceNotFoundException;
 import com.sonora.sonora.kafka.TrackEventProducer;
 import com.sonora.sonora.kafka.TrackImportedEvent;
+import com.sonora.sonora.kafka.TrackPlayedEvent;
+import com.sonora.sonora.kafka.TrackPlayedProducer;
 import com.sonora.sonora.model.entity.Artist;
 import com.sonora.sonora.model.entity.Track;
 import com.sonora.sonora.repository.ArtistRepository;
@@ -38,6 +40,7 @@ public class StreamingService {
     private final TrackRepository    trackRepository;
     private final ArtistRepository   artistRepository;
     private final TrackEventProducer trackEventProducer;
+    private final TrackPlayedProducer trackPlayedProducer;
 
     @Value("${audio.storage.path:/app/audio}")
     private String audioStoragePath;
@@ -131,6 +134,18 @@ public class StreamingService {
                 .header(HttpHeaders.CONTENT_RANGE,
                         "bytes " + start + "-" + end + "/" + fileLength)
                 .body(new RangeResource(resource, start, contentLength));
+    }
+
+    public void publishTrackPlayed(Long trackId, String userEmail, Integer durationListened) {
+        if (!trackRepository.existsById(trackId)) {
+            throw new ResourceNotFoundException("Track not found: " + trackId);
+        }
+
+        trackPlayedProducer.sendTrackPlayed(TrackPlayedEvent.builder()
+                .trackId(trackId)
+                .userEmail(userEmail)
+                .durationListened(durationListened)
+                .build());
     }
 
 

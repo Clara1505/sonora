@@ -69,12 +69,12 @@ jobs:
           name: jacoco-report
           path: backend/target/site/jacoco/
 
-      - name: Vérifier couverture >= 70%
+      - name: Vérifier couverture >= 80%
         run: |
           COVERAGE=$(grep -Po 'Total.*?([0-9]+)%' backend/target/site/jacoco/index.html | tail -1 | grep -Po '[0-9]+')
           echo "Couverture : $COVERAGE%"
-          if [ "$COVERAGE" -lt 70 ]; then
-            echo "Couverture insuffisante ($COVERAGE% < 70%)"
+          if [ "$COVERAGE" -lt 80 ]; then
+            echo "Couverture insuffisante ($COVERAGE% < 80%)"
             exit 1
           fi
 

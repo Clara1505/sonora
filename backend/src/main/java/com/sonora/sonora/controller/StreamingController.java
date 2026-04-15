@@ -1,14 +1,15 @@
 package com.sonora.sonora.controller;
 import com.sonora.sonora.dto.TrackDto;
+import com.sonora.sonora.dto.TrackPlayedRequest;
 import com.sonora.sonora.dto.TrackUploadRequest;
 import com.sonora.sonora.service.StreamingService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -26,7 +27,7 @@ public class StreamingController {
     public ResponseEntity<TrackDto> upload(
             @RequestPart("file") MultipartFile file,
             @RequestPart("metadata") TrackUploadRequest request,
-            @AuthenticationPrincipal String email) throws IOException {
+            @AuthenticationPrincipal(expression = "username") String email) throws IOException {
         TrackDto response = streamingService.uploadTrack(file, request, email);
         return ResponseEntity.ok(response);
     }
@@ -37,5 +38,14 @@ public class StreamingController {
             @RequestHeader HttpHeaders headers) throws MalformedURLException {
 
         return streamingService.streamTrack(id, headers);
+    }
+
+    @PostMapping("/{id}/played")
+    public ResponseEntity<Void> markPlayed(
+            @PathVariable Long id,
+            @Valid @RequestBody TrackPlayedRequest request,
+            @AuthenticationPrincipal(expression = "username") String email) {
+        streamingService.publishTrackPlayed(id, email, request.durationListened());
+        return ResponseEntity.accepted().build();
     }
 }
