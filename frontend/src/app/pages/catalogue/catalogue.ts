@@ -14,6 +14,7 @@ import { Genre, Mood } from '../../models/track';
 import { TrackService } from '../../services/track';
 import { ArtistService } from '../../services/artist';
 import { PlayerService } from '../../services/player';
+import { FavoriteService } from '../../services/favorite';
 import { forkJoin } from 'rxjs';
 
 @Component({
@@ -39,6 +40,7 @@ export class Catalogue implements OnInit {
   tracks: any[] = [];
   filteredTracks: any[] = [];
   artistMap: Map<number, string> = new Map();
+  favoriteIds: Set<number> = new Set();
   isLoading = false;
 
   searchQuery = '';
@@ -51,11 +53,13 @@ export class Catalogue implements OnInit {
   constructor(
     private trackService: TrackService,
     private artistService: ArtistService,
-    private playerService: PlayerService
+    private playerService: PlayerService,
+    private favoriteService: FavoriteService
   ) {}
 
   ngOnInit(): void {
     this.loadTracks();
+    this.loadFavorites();
   }
 
   loadTracks(): void {
@@ -74,6 +78,31 @@ export class Catalogue implements OnInit {
         this.isLoading = false;
       }
     });
+  }
+
+  loadFavorites(): void {
+    this.favoriteService.getAll().subscribe({
+      next: (favorites) => {
+        favorites.forEach(f => this.favoriteIds.add(f.trackId));
+      },
+      error: () => {}
+    });
+  }
+
+  isFavorite(trackId: number): boolean {
+    return this.favoriteIds.has(trackId);
+  }
+
+  toggleFavorite(track: any): void {
+    if (this.isFavorite(track.id)) {
+      this.favoriteService.remove(track.id).subscribe(() => {
+        this.favoriteIds.delete(track.id);
+      });
+    } else {
+      this.favoriteService.add(track.id).subscribe(() => {
+        this.favoriteIds.add(track.id);
+      });
+    }
   }
 
   getArtistName(artistId: number): string {

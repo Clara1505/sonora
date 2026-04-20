@@ -81,8 +81,10 @@
             <button mat-icon-button color="primary" (click)="playTrack(track)" title="Écouter">
               <mat-icon>play_circle</mat-icon>
             </button>
-            <button mat-icon-button title="Favoris">
-              <mat-icon>favorite_border</mat-icon>
+            <button mat-icon-button (click)="toggleFavorite(track)" title="Favoris">
+              <mat-icon [style.color]="isFavorite(track.id) ? '#e91e63' : ''">
+                {{ isFavorite(track.id) ? 'favorite' : 'favorite_border' }}
+              </mat-icon>
             </button>
             <button mat-icon-button [routerLink]="['/tracks', track.id]" title="Détails">
               <mat-icon>info</mat-icon>
