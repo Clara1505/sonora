@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
 
 export interface PlayerState {
   isPlaying: boolean;
@@ -16,6 +17,7 @@ export interface PlayerState {
 export class PlayerService {
   private audio = new Audio();
   private readonly API_URL = 'http://localhost:8080/api/tracks';
+  private playStartTime = 0;
 
   private state: PlayerState = {
     isPlaying: false,
@@ -31,7 +33,7 @@ export class PlayerService {
   private stateSubject = new BehaviorSubject<PlayerState>(this.state);
   state$ = this.stateSubject.asObservable();
 
-  constructor() {
+  constructor(private http: HttpClient) {
     this.audio.volume = 0.8;
 
     this.audio.ontimeupdate = () => {
@@ -43,10 +45,12 @@ export class PlayerService {
     };
 
     this.audio.onended = () => {
+      this.notifyTrackPlayed();
       this.updateState({ isPlaying: false, currentTime: 0 });
     };
 
     this.audio.onplay = () => {
+      this.playStartTime = Date.now();
       this.updateState({ isPlaying: true });
     };
 
@@ -59,9 +63,13 @@ export class PlayerService {
     const url = `${this.API_URL}/${trackId}/stream`;
 
     if (this.state.trackId === trackId) {
-      // Même track — toggle play/pause
       this.togglePlay();
       return;
+    }
+
+    // Notifie l'écoute de la track précédente avant de changer
+    if (this.state.trackId && !this.audio.paused) {
+      this.notifyTrackPlayed();
     }
 
     this.audio.src = url;
@@ -91,6 +99,14 @@ export class PlayerService {
   toggleMute(): void {
     this.audio.muted = !this.audio.muted;
     this.updateState({ isMuted: this.audio.muted });
+  }
+
+  private notifyTrackPlayed(): void {
+    if (!this.state.trackId) return;
+    const durationListened = Math.floor(this.audio.currentTime) || 1;
+    this.http.post(`${this.API_URL}/${this.state.trackId}/played`, {
+      durationListened
+    }).subscribe({ error: () => {} });
   }
 
   private updateState(partial: Partial<PlayerState>): void {

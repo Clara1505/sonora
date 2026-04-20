@@ -22,7 +22,7 @@ public class StatsController {
 
     @GetMapping("/me")
     public UserStatsResponse getMyStats(
-            @AuthenticationPrincipal UserDetails userDetails) {
-        return statsService.getUserStats(userDetails.getUsername());
+            @AuthenticationPrincipal String email) {
+        return statsService.getUserStats(email);
     }
 }
