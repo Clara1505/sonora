@@ -110,6 +110,32 @@ class EntityTest {
     }
 
     @Test
+    void playlist_smart_shouldBuildWithTracks() {
+        User user = User.builder().email("test@sonora.com").passwordHash("x").role(Role.USER).build();
+        Artist artist = Artist.builder().name("Miles Davis").build();
+        Track track = Track.builder()
+                .title("So What")
+                .duration(562)
+                .genre(Genre.JAZZ)
+                .mood(Mood.CHILL)
+                .artist(artist)
+                .build();
+
+        Playlist playlist = Playlist.builder()
+                .name("Jazz Chill")
+                .type(PlaylistType.SMART)
+                .user(user)
+                .tracks(java.util.List.of(track))
+                .build();
+
+        assertThat(playlist.getType()).isEqualTo(PlaylistType.SMART);
+        assertThat(playlist.getTracks()).hasSize(1);
+        assertThat(playlist.getTracks().get(0).getGenre()).isEqualTo(Genre.JAZZ);
+        assertThat(playlist.getTracks().get(0).getMood()).isEqualTo(Mood.CHILL);
+        assertThat(playlist.getCreatedAt()).isNotNull();
+    }
+
+    @Test
     void favorite_shouldBuildCorrectly() {
         User user = User.builder().email("a@b.com").passwordHash("x").role(Role.USER).build();
         Artist artist = Artist.builder().name("Test").build();
