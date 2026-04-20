@@ -21,8 +21,8 @@ public class FavoriteController {
     @PostMapping("/{trackId}")
     public ResponseEntity<FavoriteResponse> add(
             @PathVariable Long trackId,
-            @AuthenticationPrincipal UserDetails userDetails) {
-        FavoriteResponse response = favoriteService.addFavorite(trackId, userDetails.getUsername());
+            @AuthenticationPrincipal String email) {
+        FavoriteResponse response = favoriteService.addFavorite(trackId, email);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -30,13 +30,13 @@ public class FavoriteController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void remove(
             @PathVariable Long trackId,
-            @AuthenticationPrincipal UserDetails userDetails) {
-        favoriteService.removeFavorite(trackId, userDetails.getUsername());
+            @AuthenticationPrincipal String email) {
+        favoriteService.removeFavorite(trackId, email);
     }
 
     @GetMapping
     public List<FavoriteResponse> list(
-            @AuthenticationPrincipal UserDetails userDetails) {
-        return favoriteService.listFavorites(userDetails.getUsername());
+            @AuthenticationPrincipal String email) {
+        return favoriteService.listFavorites(email);
     }
 }

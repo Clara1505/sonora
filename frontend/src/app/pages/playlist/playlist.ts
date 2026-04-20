@@ -13,41 +13,6 @@ import { FormsModule } from '@angular/forms';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Playlist as PlaylistModel } from '../../models/playlist';
 
-const MOCK_PLAYLISTS: PlaylistModel[] = [
-  {
-    id: 1,
-    name: 'Mes favoris',
-    type: 'MANUAL',
-    createdAt: '2024-01-15',
-    tracks: [
-      {
-        id: 1, title: 'Get Lucky', duration: 248, genre: 'POP', mood: 'HAPPY',
-        artist: { id: 1, name: 'Daft Punk' }
-      },
-      {
-        id: 2, title: 'Bohemian Rhapsody', duration: 355, genre: 'ROCK', mood: 'HYPE',
-        artist: { id: 2, name: 'Queen' }
-      },
-    ]
-  },
-  {
-    id: 2,
-    name: 'Focus & Jazz',
-    type: 'SMART',
-    createdAt: '2024-02-20',
-    tracks: [
-      {
-        id: 3, title: 'So What', duration: 562, genre: 'JAZZ', mood: 'CHILL',
-        artist: { id: 3, name: 'Miles Davis' }
-      },
-      {
-        id: 6, title: 'Clair de Lune', duration: 318, genre: 'CLASSICAL', mood: 'CHILL',
-        artist: { id: 6, name: 'Debussy' }
-      },
-    ]
-  },
-];
-
 @Component({
   selector: 'app-playlist',
   standalone: true,
@@ -81,8 +46,8 @@ export class PlaylistPage implements OnInit {
   genres = ['POP', 'ROCK', 'JAZZ', 'CLASSICAL', 'ELECTRONIC', 'HIP_HOP', 'REGGAE', 'METAL', 'RNB'];
 
   ngOnInit(): void {
-    this.playlists = MOCK_PLAYLISTS;
-    this.selectedPlaylist = this.playlists[0];
+    this.playlists = [];
+    this.selectedPlaylist = null;
   }
 
   selectPlaylist(playlist: PlaylistModel): void {
