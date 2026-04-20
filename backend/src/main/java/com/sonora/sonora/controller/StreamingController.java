@@ -27,7 +27,7 @@ public class StreamingController {
     public ResponseEntity<TrackDto> upload(
             @RequestPart("file") MultipartFile file,
             @RequestPart("metadata") TrackUploadRequest request,
-            @AuthenticationPrincipal(expression = "username") String email) throws IOException {
+            @AuthenticationPrincipal String email) throws IOException {
         TrackDto response = streamingService.uploadTrack(file, request, email);
         return ResponseEntity.ok(response);
     }
@@ -44,7 +44,7 @@ public class StreamingController {
     public ResponseEntity<Void> markPlayed(
             @PathVariable Long id,
             @Valid @RequestBody TrackPlayedRequest request,
-            @AuthenticationPrincipal(expression = "username") String email) {
+            @AuthenticationPrincipal String email) {
         streamingService.publishTrackPlayed(id, email, request.durationListened());
         return ResponseEntity.accepted().build();
     }
