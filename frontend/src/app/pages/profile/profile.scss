@@ -114,7 +114,8 @@
       border-radius: 8px;
       transition: background 0.2s;
 
-      &:hover { background: #1e1e2e; }
+      &:hover { background: #1e1e2e;
+      color: white; }
 
       .track-cover {
         width: 40px;

@@ -67,11 +67,10 @@
             <div class="track-info">
               <span class="track-title">{{ track.trackTitle }}</span>
             </div>
-            <span class="play-count">
-              <mat-icon>play_circle</mat-icon>
-              {{ track.playCount }} écoute(s)
-            </span>
             <span class="duration">{{ formatTotalDuration(track.totalDurationListened || 0) }}</span>
+            <button mat-icon-button color="primary" (click)="playTrack(track.trackId!, track.trackTitle)">
+              <mat-icon>play_circle</mat-icon>
+            </button>
           </div>
         }
       </div>

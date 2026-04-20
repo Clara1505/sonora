@@ -9,6 +9,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth';
 import { StatsService, UserStatsResponse } from '../../services/stats';
+import { PlayerService } from '../../services/player';
 import { User } from '../../models/user';
 
 @Component({
@@ -35,6 +36,7 @@ export class Profile implements OnInit {
   constructor(
     private authService: AuthService,
     private statsService: StatsService,
+    private playerService: PlayerService,
     private router: Router
   ) {}
 
@@ -67,6 +69,10 @@ export class Profile implements OnInit {
     this.router.navigate(['/login']);
   }
 
+  playTrack(trackId: number, trackTitle: string): void {
+    this.playerService.play(trackId, trackTitle, '');
+  }
+
   formatTotalDuration(seconds: number): string {
     const h = Math.floor(seconds / 3600);
     const m = Math.floor((seconds % 3600) / 60);
@@ -80,10 +86,5 @@ export class Profile implements OnInit {
       (acc, t) => acc + (t.totalDurationListened || 0), 0
     );
     return this.formatTotalDuration(total);
-  }
-
-  getFavoriteGenre(): string {
-    if (!this.userStats?.topTracks?.length) return '—';
-    return '—'; // sera disponible quand Kafka track.played sera actif
   }
 }
