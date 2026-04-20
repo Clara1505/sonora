@@ -1,6 +1,5 @@
 <div class="track-detail-container">
-
-  <a mat-button routerLink="/catalogue" class="back-btn">
+  <a mat-stroked-button routerLink="/catalogue" class="back-btn">
     <mat-icon>arrow_back</mat-icon>
     Retour au catalogue
   </a>
@@ -25,11 +24,9 @@
         <div class="track-cover">
           <mat-icon>music_note</mat-icon>
         </div>
-
         <div class="track-info">
           <h1>{{ track.title }}</h1>
-          <h2>{{ track.artist.name }}</h2>
-          <p class="album">{{ track.album?.title }} • {{ track.album?.releaseYear }}</p>
+          <h2>{{ artistName }}</h2>
 
           <div class="track-tags">
             @if (track.genre) {
@@ -47,14 +44,13 @@
           </div>
 
           <div class="track-actions">
-            <button mat-fab color="primary">
+            <button mat-fab color="primary" (click)="playTrack()">
               <mat-icon>play_arrow</mat-icon>
             </button>
             <button mat-icon-button (click)="toggleFavorite()">
-              <mat-icon>{{ isFavorite ? 'favorite' : 'favorite_border' }}</mat-icon>
-            </button>
-            <button mat-icon-button>
-              <mat-icon>playlist_add</mat-icon>
+              <mat-icon [style.color]="isFavorite ? '#e91e63' : ''">
+                {{ isFavorite ? 'favorite' : 'favorite_border' }}
+              </mat-icon>
             </button>
           </div>
         </div>
@@ -70,8 +66,8 @@
             <mat-icon>person</mat-icon>
           </div>
           <div>
-            <h4>{{ track.artist.name }}</h4>
-            <p>{{ track.artist.bio || 'Aucune biographie disponible.' }}</p>
+            <h4>{{ artistName }}</h4>
+            <p>{{ artistBio || 'Aucune biographie disponible.' }}</p>
           </div>
         </div>
       </div>
