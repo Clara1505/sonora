@@ -40,6 +40,11 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'upload',
+    loadComponent: () => import('./pages/upload/upload').then(m => m.Upload),
+    canActivate: [authGuard],
+  },
+  {
     path: '**',
     redirectTo: '',
   },
