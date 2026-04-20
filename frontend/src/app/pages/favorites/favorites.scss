@@ -3,10 +3,6 @@
   max-width: 900px;
   margin: 0 auto;
 
-  h1 {
-    color: white;
-  }
-
   .favorites-header {
     display: flex;
     align-items: center;
@@ -41,6 +37,7 @@
       h1 {
         font-size: 2rem;
         margin: 0 0 0.25rem;
+        color: white;
       }
 
       p {
@@ -86,7 +83,10 @@
     border-radius: 8px;
     transition: background 0.2s;
 
-    &:hover { background: #1e1e2e; }
+    &:hover { 
+      background: #1e1e2e; 
+      color: white;
+    }
 
     .track-number {
       width: 24px;
