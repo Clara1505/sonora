@@ -1,1 +1,68 @@
-<p>favorites works!</p>
+<div class="favorites-container">
+  <div class="favorites-header">
+    <div class="header-info">
+      <div class="header-icon">
+        <mat-icon>favorite</mat-icon>
+      </div>
+      <div>
+        <h1>Mes Favoris</h1>
+        <p>{{ favorites.length }} titre(s)</p>
+      </div>
+    </div>
+    @if (favorites.length > 0) {
+      <button mat-fab color="primary" (click)="playTrack(favorites[0])">
+        <mat-icon>play_arrow</mat-icon>
+      </button>
+    }
+  </div>
+
+  @if (isLoading) {
+    <div class="loading">
+      <mat-spinner></mat-spinner>
+    </div>
+  }
+
+  @if (!isLoading && favorites.length === 0) {
+    <div class="empty-state">
+      <mat-icon>favorite_border</mat-icon>
+      <h2>Aucun favori</h2>
+      <p>Ajoutez des titres à vos favoris depuis le catalogue</p>
+      <a mat-raised-button color="primary" routerLink="/catalogue">
+        Explorer le catalogue
+      </a>
+    </div>
+  }
+
+  @if (!isLoading && favorites.length > 0) {
+    <div class="favorites-list">
+      @for (fav of favorites; track fav.id; let i = $index) {
+        <div class="favorite-row">
+          <span class="track-number">{{ i + 1 }}</span>
+          <div class="track-cover">
+            <mat-icon>music_note</mat-icon>
+          </div>
+          <div class="track-info">
+            <span class="track-title">{{ fav.trackTitle }}</span>
+            <span class="track-artist">{{ fav.artistName }}</span>
+          </div>
+          @if (fav.genre) {
+            <span class="genre-chip" [style.background-color]="getGenreColor(fav.genre)">
+              {{ fav.genre }}
+            </span>
+          }
+          @if (fav.mood) {
+            <span class="mood-chip">{{ fav.mood }}</span>
+          }
+          <div class="track-actions">
+            <button mat-icon-button color="primary" (click)="playTrack(fav)" title="Écouter">
+              <mat-icon>play_circle</mat-icon>
+            </button>
+            <button mat-icon-button (click)="removeFavorite(fav)" title="Retirer des favoris">
+              <mat-icon style="color: #e91e63">favorite</mat-icon>
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

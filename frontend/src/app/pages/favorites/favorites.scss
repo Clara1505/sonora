@@ -1,0 +1,149 @@
+.favorites-container {
+  padding: 2rem;
+  max-width: 900px;
+  margin: 0 auto;
+
+  .favorites-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    padding: 2rem;
+    background: linear-gradient(135deg, #1a1a2e, #2a1a4e);
+    border-radius: 16px;
+
+    .header-info {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+
+      .header-icon {
+        width: 80px;
+        height: 80px;
+        border-radius: 16px;
+        background: linear-gradient(135deg, #e91e63, #f44336);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        mat-icon {
+          font-size: 2.5rem;
+          width: 2.5rem;
+          height: 2.5rem;
+          color: white;
+        }
+      }
+
+      h1 {
+        font-size: 2rem;
+        margin: 0 0 0.25rem;
+      }
+
+      p {
+        color: #888;
+        margin: 0;
+      }
+    }
+  }
+
+  .loading {
+    display: flex;
+    justify-content: center;
+    padding: 4rem;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 4rem;
+    color: #888;
+
+    mat-icon {
+      font-size: 4rem;
+      width: 4rem;
+      height: 4rem;
+      margin-bottom: 1rem;
+      color: #e91e63;
+    }
+
+    h2 { color: white; }
+    p { margin-bottom: 1.5rem; }
+  }
+
+  .favorites-list {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .favorite-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 10px 16px;
+    border-radius: 8px;
+    transition: background 0.2s;
+
+    &:hover { background: #1e1e2e; }
+
+    .track-number {
+      width: 24px;
+      text-align: center;
+      color: #888;
+      font-size: 0.875rem;
+      flex-shrink: 0;
+    }
+
+    .track-cover {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #e91e63, #f44336);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+
+      mat-icon { color: white; font-size: 1.2rem; }
+    }
+
+    .track-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+
+      .track-title {
+        font-weight: 500;
+        font-size: 0.9rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .track-artist { font-size: 0.8rem; color: #888; }
+    }
+
+    .genre-chip {
+      padding: 2px 10px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      color: white;
+      font-weight: 500;
+      flex-shrink: 0;
+    }
+
+    .mood-chip {
+      padding: 2px 10px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      background: #333;
+      color: #ccc;
+      flex-shrink: 0;
+    }
+
+    .track-actions {
+      display: flex;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+  }
+}
