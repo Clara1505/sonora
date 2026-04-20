@@ -62,6 +62,10 @@
             <span class="name">{{ playlist.name }}</span>
             <span class="meta">{{ playlist.tracks.length }} titre(s)</span>
           </div>
+          <button mat-icon-button color="warn" matTooltip="Supprimer"
+                  (click)="deletePlaylist(playlist, $event)">
+            <mat-icon>delete</mat-icon>
+          </button>
         </div>
       }
     </div>
