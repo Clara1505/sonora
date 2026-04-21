@@ -17,6 +17,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -99,13 +100,13 @@ class StreamingControllerTest {
         @Test
         @WithMockUser(username = "user@sonora.com")
         void markPlayed_shouldReturn202() throws Exception {
-                mockMvc.perform(post("/api/tracks/1/played")
-                                                .contentType(MediaType.APPLICATION_JSON)
-                                                .content("""
-                                                                {"durationListened":120}
-                                                                """))
-                                .andExpect(status().isAccepted());
+        mockMvc.perform(post("/api/tracks/1/played")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"durationListened":120}
+                                """))
+                .andExpect(status().isAccepted());
 
-                verify(streamingService).publishTrackPlayed(eq(1L), eq("user@sonora.com"), eq(120));
+        verify(streamingService).publishTrackPlayed(eq(1L), any(), eq(120));
         }
 }

@@ -90,6 +90,20 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Générer environment.ts
+        run: |
+          cat > src/environments/environment.ts << EOF
+          export const environment = {
+            production: false,
+            apiUrl: 'http://localhost:8080',
+            spotify: {
+              clientId: '${{ secrets.SPOTIFY_CLIENT_ID }}',
+              clientSecret: '${{ secrets.SPOTIFY_CLIENT_SECRET }}'
+            }
+          };
+          EOF
+        working-directory: ./frontend
+
       - name: Install & Build Angular
         run: |
           npm ci
