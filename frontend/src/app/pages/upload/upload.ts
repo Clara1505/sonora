@@ -11,10 +11,14 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { MatListModule } from '@angular/material/list';
 import { HttpClient } from '@angular/common/http';
 import { ArtistService } from '../../services/artist';
 import { AlbumService } from '../../services/album';
+import { SpotifyService, SpotifyTrack } from '../../services/spotify';
 import { Genre, Mood } from '../../models/track';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-upload',
@@ -32,12 +36,23 @@ import { Genre, Mood } from '../../models/track';
     MatProgressBarModule,
     MatDividerModule,
     MatSnackBarModule,
+    MatButtonToggleModule,
+    MatListModule,
   ],
   templateUrl: './upload.html',
   styleUrl: './upload.scss'
 })
 export class Upload implements OnInit {
-  private readonly API_URL = 'http://localhost:8080/api';
+  private readonly API_URL = `${environment.apiUrl}/api`;
+
+  mode: 'manual' | 'spotify' = 'manual';
+
+  // Spotify
+  spotifyQuery = '';
+  spotifyResults: SpotifyTrack[] = [];
+  selectedSpotifyTrack: SpotifyTrack | null = null;
+  spotifyFallbackFile: File | null = null;
+  isSearching = false;
 
   // Fichier audio
   selectedFile: File | null = null;
@@ -66,11 +81,11 @@ export class Upload implements OnInit {
   moods: Mood[] = ['HAPPY', 'SAD', 'CHILL', 'FOCUS', 'HYPE', 'ROMANTIC', 'WORKOUT', 'ANGRY'];
 
   isUploading = false;
-  uploadProgress = 0;
 
   constructor(
     private artistService: ArtistService,
     private albumService: AlbumService,
+    private spotifyService: SpotifyService,
     private http: HttpClient,
     private snackBar: MatSnackBar,
     private router: Router
@@ -82,9 +97,7 @@ export class Upload implements OnInit {
   }
 
   loadArtists(): void {
-    this.artistService.getAll().subscribe(artists => {
-      this.artists = artists;
-    });
+    this.artistService.getAll().subscribe(artists => { this.artists = artists; });
   }
 
   loadAlbums(): void {
@@ -111,34 +124,121 @@ export class Upload implements OnInit {
     const file = event.target.files[0];
     if (file) {
       this.selectedFile = file;
-      if (!this.trackTitle) {
-        this.trackTitle = file.name.replace(/\.[^.]+$/, '');
-      }
+      if (!this.trackTitle) this.trackTitle = file.name.replace(/\.[^.]+$/, '');
     }
   }
 
+  // ── Spotify ──────────────────────────────────
+
+  searchSpotify(): void {
+    if (!this.spotifyQuery.trim()) return;
+    this.isSearching = true;
+    this.spotifyResults = [];
+    this.spotifyService.searchTracks(this.spotifyQuery).subscribe({
+      next: (tracks) => { this.spotifyResults = tracks; this.isSearching = false; },
+      error: () => {
+        this.isSearching = false;
+        this.snackBar.open('Erreur lors de la recherche Spotify', 'OK', { duration: 3000 });
+      }
+    });
+  }
+
+  selectSpotifyTrack(track: SpotifyTrack): void {
+    this.selectedSpotifyTrack = track;
+    this.spotifyFallbackFile = null; // reset le fichier fallback à chaque nouvelle sélection
+    this.trackTitle = track.name;
+    this.newArtistName = track.artists[0]?.name || '';
+    this.newAlbumTitle = track.album.name;
+    this.newAlbumYear = parseInt(track.album.release_date.substring(0, 4));
+    this.showNewArtistForm = true;
+    this.showNewAlbumForm = true;
+  }
+
+  onSpotifyFileSelected(event: any): void {
+    const file = event.target.files[0];
+    if (file) this.spotifyFallbackFile = file;
+  }
+
+  formatDuration(ms: number): string {
+    const m = Math.floor(ms / 60000);
+    const s = Math.floor((ms % 60000) / 1000);
+    return `${m}:${s.toString().padStart(2, '0')}`;
+  }
+
+  // ── Upload ───────────────────────────────────
+
   async createArtistIfNeeded(): Promise<number> {
     if (!this.showNewArtistForm) return this.selectedArtistId!;
-    const artist = await this.artistService.create({
-      name: this.newArtistName,
-      bio: this.newArtistBio
-    }).toPromise();
+    const artist = await this.artistService.create({ name: this.newArtistName, bio: this.newArtistBio }).toPromise();
     this.artists = [...this.artists, artist];
     return artist!.id;
   }
 
   async createAlbumIfNeeded(artistId: number): Promise<number> {
     if (!this.showNewAlbumForm) return this.selectedAlbumId!;
-    const album = await this.albumService.create({
-      title: this.newAlbumTitle,
-      releaseYear: this.newAlbumYear,
-      artistId: artistId
-    }).toPromise();
+    const album = await this.albumService.create({ title: this.newAlbumTitle, releaseYear: this.newAlbumYear, artistId }).toPromise();
     this.albums = [...this.albums, album];
     return (album as any)!.id;
   }
 
+  async fetchPreviewAsFile(previewUrl: string): Promise<File> {
+    const response = await fetch(previewUrl);
+    const blob = await response.blob();
+    return new File([blob], `${this.trackTitle}.mp3`, { type: 'audio/mpeg' });
+  }
+
   async upload(): Promise<void> {
+    this.mode === 'spotify' ? await this.uploadFromSpotify() : await this.uploadManual();
+  }
+
+  async uploadFromSpotify(): Promise<void> {
+    const hasPreview = !!this.selectedSpotifyTrack?.preview_url;
+    const hasFile = !!this.spotifyFallbackFile;
+
+    if (!hasPreview && !hasFile) {
+      this.snackBar.open('Veuillez fournir un fichier audio', 'OK', { duration: 3000 });
+      return;
+    }
+
+    this.isUploading = true;
+    try {
+      const artistId = await this.createArtistIfNeeded();
+      const albumId = await this.createAlbumIfNeeded(artistId);
+
+      const file = hasPreview
+        ? await this.fetchPreviewAsFile(this.selectedSpotifyTrack!.preview_url!)
+        : this.spotifyFallbackFile!;
+
+      const metadata = {
+        title: this.trackTitle,
+        genre: this.selectedGenre || null,
+        mood: this.selectedMood || null,
+        artistId,
+        albumId: albumId || null
+      };
+
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+
+      this.http.post(`${this.API_URL}/tracks/upload`, formData).subscribe({
+        next: () => {
+          this.isUploading = false;
+          this.snackBar.open('Titre importé depuis Spotify !', 'OK', { duration: 3000 });
+          this.router.navigate(['/catalogue']);
+        },
+        error: () => {
+          this.isUploading = false;
+          this.snackBar.open('Erreur lors de l\'upload', 'OK', { duration: 3000 });
+        }
+      });
+    } catch {
+      this.isUploading = false;
+      this.snackBar.open('Erreur lors de l\'import', 'OK', { duration: 3000 });
+    }
+  }
+
+  async uploadManual(): Promise<void> {
     if (!this.selectedFile || !this.trackTitle) {
       this.snackBar.open('Veuillez sélectionner un fichier et un titre', 'OK', { duration: 3000 });
       return;
@@ -147,26 +247,20 @@ export class Upload implements OnInit {
       this.snackBar.open('Veuillez sélectionner ou créer un artiste', 'OK', { duration: 3000 });
       return;
     }
-
     this.isUploading = true;
-    this.uploadProgress = 0;
-
     try {
       const artistId = await this.createArtistIfNeeded();
       const albumId = await this.createAlbumIfNeeded(artistId);
-
       const metadata = {
         title: this.trackTitle,
         genre: this.selectedGenre || null,
         mood: this.selectedMood || null,
-        artistId: artistId,
+        artistId,
         albumId: albumId || null
       };
-
       const formData = new FormData();
       formData.append('file', this.selectedFile);
       formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-
       this.http.post(`${this.API_URL}/tracks/upload`, formData).subscribe({
         next: () => {
           this.isUploading = false;
@@ -185,8 +279,11 @@ export class Upload implements OnInit {
   }
 
   get canUpload(): boolean {
+    if (this.mode === 'spotify') {
+      const hasAudio = !!this.selectedSpotifyTrack?.preview_url || !!this.spotifyFallbackFile;
+      return !!this.selectedSpotifyTrack && hasAudio && !!this.newArtistName;
+    }
     const hasArtist = this.showNewArtistForm ? !!this.newArtistName : !!this.selectedArtistId;
-    const hasAlbum = this.showNewAlbumForm ? !!this.newAlbumTitle : true;
-    return !!this.selectedFile && !!this.trackTitle && hasArtist && hasAlbum;
+    return !!this.selectedFile && !!this.trackTitle && hasArtist;
   }
 }

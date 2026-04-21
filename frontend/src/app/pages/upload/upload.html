@@ -7,127 +7,265 @@
     <h1>Ajouter un titre</h1>
   </div>
 
-  <div class="upload-grid">
+  <!-- Toggle mode -->
+  <div class="mode-toggle">
+    <mat-button-toggle-group [(ngModel)]="mode" aria-label="Mode d'import">
+      <mat-button-toggle value="manual">
+        <mat-icon>upload_file</mat-icon>
+        Upload manuel
+      </mat-button-toggle>
+      <mat-button-toggle value="spotify">
+        <mat-icon>music_note</mat-icon>
+        Importer depuis Spotify
+      </mat-button-toggle>
+    </mat-button-toggle-group>
+  </div>
 
-    <!-- Fichier audio -->
-    <mat-card class="upload-card">
-      <mat-card-content>
-        <h2><mat-icon>audio_file</mat-icon> Fichier audio</h2>
-        <div class="file-drop" (click)="fileInput.click()">
-          @if (selectedFile) {
-            <mat-icon>check_circle</mat-icon>
-            <p>{{ selectedFile.name }}</p>
-            <span>{{ (selectedFile.size / 1024 / 1024).toFixed(2) }} Mo</span>
-          } @else {
-            <mat-icon>upload_file</mat-icon>
-            <p>Cliquez pour sélectionner un fichier MP3 ou WAV</p>
+  <!-- ── MODE SPOTIFY ── -->
+  @if (mode === 'spotify') {
+    <div class="spotify-section">
+
+      <!-- Recherche Spotify -->
+      <mat-card class="upload-card full-width-card">
+        <mat-card-content>
+          <h2><mat-icon style="color: #1db954">music_note</mat-icon> Rechercher sur Spotify</h2>
+          <div class="search-row">
+            <mat-form-field appearance="outline" class="search-field">
+              <mat-label>Titre, artiste...</mat-label>
+              <input matInput [(ngModel)]="spotifyQuery" (keyup.enter)="searchSpotify()" placeholder="Ex: Get Lucky Daft Punk">
+            </mat-form-field>
+            <button mat-raised-button style="background:#1db954; color:white" (click)="searchSpotify()" [disabled]="isSearching">
+              <mat-icon>search</mat-icon>
+              {{ isSearching ? 'Recherche...' : 'Rechercher' }}
+            </button>
+          </div>
+
+          @if (isSearching) {
+            <mat-progress-bar mode="indeterminate"></mat-progress-bar>
           }
+
+          @if (spotifyResults.length > 0) {
+            <div class="spotify-results">
+              @for (track of spotifyResults; track track.id) {
+                <div class="spotify-track"
+                     [class.selected]="selectedSpotifyTrack?.id === track.id"
+                     (click)="selectSpotifyTrack(track)">
+                  @if (track.album.images[0]) {
+                    <img [src]="track.album.images[0].url" alt="cover" class="track-cover-img">
+                  }
+                  <div class="track-info">
+                    <span class="track-name">{{ track.name }}</span>
+                    <span class="track-artist">{{ track.artists[0]?.name }}</span>
+                    <span class="track-album">{{ track.album.name }}</span>
+                  </div>
+                  <span class="track-duration">{{ formatDuration(track.duration_ms) }}</span>
+                  @if (track.preview_url) {
+                    <span class="preview-badge">30s preview</span>
+                  } @else {
+                    <span class="no-preview-badge">Pas de preview</span>
+                  }
+                  @if (selectedSpotifyTrack?.id === track.id) {
+                    <mat-icon class="check-icon">check_circle</mat-icon>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </mat-card-content>
+      </mat-card>
+
+      @if (selectedSpotifyTrack) {
+        <!-- Infos pré-remplies -->
+        <div class="upload-grid">
+          <mat-card class="upload-card">
+            <mat-card-content>
+              <h2><mat-icon>info</mat-icon> Informations</h2>
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Titre</mat-label>
+                <input matInput [(ngModel)]="trackTitle">
+              </mat-form-field>
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Genre</mat-label>
+                <mat-select [(ngModel)]="selectedGenre">
+                  <mat-option value="">— Aucun —</mat-option>
+                  @for (genre of genres; track genre) {
+                    <mat-option [value]="genre">{{ genre }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Mood</mat-label>
+                <mat-select [(ngModel)]="selectedMood">
+                  <mat-option value="">— Aucun —</mat-option>
+                  @for (mood of moods; track mood) {
+                    <mat-option [value]="mood">{{ mood }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+            </mat-card-content>
+          </mat-card>
+
+          <mat-card class="upload-card">
+            <mat-card-content>
+              <h2><mat-icon>person</mat-icon> Artiste</h2>
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Nom de l'artiste</mat-label>
+                <input matInput [(ngModel)]="newArtistName">
+              </mat-form-field>
+              <h2><mat-icon>album</mat-icon> Album</h2>
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Titre de l'album</mat-label>
+                <input matInput [(ngModel)]="newAlbumTitle">
+              </mat-form-field>
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Année</mat-label>
+                <input matInput type="number" [(ngModel)]="newAlbumYear">
+              </mat-form-field>
+            </mat-card-content>
+          </mat-card>
         </div>
-        <input #fileInput type="file" accept=".mp3,.wav" hidden (change)="onFileSelected($event)">
-      </mat-card-content>
-    </mat-card>
 
-    <!-- Informations du titre -->
-    <mat-card class="upload-card">
-      <mat-card-content>
-        <h2><mat-icon>info</mat-icon> Informations</h2>
-
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Titre</mat-label>
-          <input matInput [(ngModel)]="trackTitle" placeholder="Nom du titre">
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Genre</mat-label>
-          <mat-select [(ngModel)]="selectedGenre">
-            <mat-option value="">— Aucun —</mat-option>
-            @for (genre of genres; track genre) {
-              <mat-option [value]="genre">{{ genre }}</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Mood</mat-label>
-          <mat-select [(ngModel)]="selectedMood">
-            <mat-option value="">— Aucun —</mat-option>
-            @for (mood of moods; track mood) {
-              <mat-option [value]="mood">{{ mood }}</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
-      </mat-card-content>
-    </mat-card>
-
-    <!-- Artiste -->
-    <mat-card class="upload-card">
-      <mat-card-content>
-        <h2><mat-icon>person</mat-icon> Artiste</h2>
-
-        @if (!showNewArtistForm) {
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Sélectionner un artiste</mat-label>
-            <mat-select [(ngModel)]="selectedArtistId" (ngModelChange)="onArtistChange()">
-                <mat-option [value]="null">— Sélectionner —</mat-option>
-                @for (artist of artists; track artist.id) {
-                    <mat-option [value]="artist.id">{{ artist.name }}</mat-option>
+        <!-- File picker affiché uniquement si pas de preview Spotify -->
+        @if (!selectedSpotifyTrack.preview_url) {
+          <mat-card class="upload-card full-width-card" style="margin-top: 16px;">
+            <mat-card-content>
+              <h2><mat-icon>audio_file</mat-icon> Fichier audio requis</h2>
+              <p style="color: #888; margin-bottom: 12px;">
+                Ce titre n'a pas de preview Spotify. Fournissez votre propre fichier MP3 ou WAV.
+              </p>
+              <div class="file-drop" (click)="spotifyFileInput.click()">
+                @if (spotifyFallbackFile) {
+                  <mat-icon>check_circle</mat-icon>
+                  <p>{{ spotifyFallbackFile.name }}</p>
+                  <span>{{ (spotifyFallbackFile.size / 1024 / 1024).toFixed(2) }} Mo</span>
+                } @else {
+                  <mat-icon>upload_file</mat-icon>
+                  <p>Cliquez pour sélectionner un fichier MP3 ou WAV</p>
                 }
-            </mat-select>
-          </mat-form-field>
-          <button mat-stroked-button (click)="showNewArtistForm = true">
-            <mat-icon>add</mat-icon> Nouvel artiste
-          </button>
-        } @else {
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Nom de l'artiste</mat-label>
-            <input matInput [(ngModel)]="newArtistName" placeholder="Nom...">
-          </mat-form-field>
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Biographie (optionnel)</mat-label>
-            <textarea matInput [(ngModel)]="newArtistBio" rows="2"></textarea>
-          </mat-form-field>
-          <button mat-stroked-button (click)="showNewArtistForm = false; newArtistName = ''">
-            <mat-icon>arrow_back</mat-icon> Choisir un existant
-          </button>
+              </div>
+              <input #spotifyFileInput type="file" accept=".mp3,.wav" hidden (change)="onSpotifyFileSelected($event)">
+            </mat-card-content>
+          </mat-card>
         }
-      </mat-card-content>
-    </mat-card>
+      }
+    </div>
+  }
 
-    <!-- Album -->
-    <mat-card class="upload-card">
-      <mat-card-content>
-        <h2><mat-icon>album</mat-icon> Album (optionnel)</h2>
+  <!-- ── MODE MANUEL ── -->
+  @if (mode === 'manual') {
+    <div class="upload-grid">
 
-        @if (!showNewAlbumForm) {
+      <mat-card class="upload-card">
+        <mat-card-content>
+          <h2><mat-icon>audio_file</mat-icon> Fichier audio</h2>
+          <div class="file-drop" (click)="fileInput.click()">
+            @if (selectedFile) {
+              <mat-icon>check_circle</mat-icon>
+              <p>{{ selectedFile.name }}</p>
+              <span>{{ (selectedFile.size / 1024 / 1024).toFixed(2) }} Mo</span>
+            } @else {
+              <mat-icon>upload_file</mat-icon>
+              <p>Cliquez pour sélectionner un fichier MP3 ou WAV</p>
+            }
+          </div>
+          <input #fileInput type="file" accept=".mp3,.wav" hidden (change)="onFileSelected($event)">
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="upload-card">
+        <mat-card-content>
+          <h2><mat-icon>info</mat-icon> Informations</h2>
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Sélectionner un album</mat-label>
-            <mat-select [(ngModel)]="selectedAlbumId">
-              <mat-option [value]="null">— Sélectionner —</mat-option>
-              @for (album of filteredAlbums; track album.id) {
-                <mat-option [value]="album.id">{{ album.title }} ({{ album.releaseYear }})</mat-option>
+            <mat-label>Titre</mat-label>
+            <input matInput [(ngModel)]="trackTitle" placeholder="Nom du titre">
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Genre</mat-label>
+            <mat-select [(ngModel)]="selectedGenre">
+              <mat-option value="">— Aucun —</mat-option>
+              @for (genre of genres; track genre) {
+                <mat-option [value]="genre">{{ genre }}</mat-option>
               }
             </mat-select>
           </mat-form-field>
-          <button mat-stroked-button (click)="showNewAlbumForm = true">
-            <mat-icon>add</mat-icon> Nouvel album
-          </button>
-        } @else {
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Titre de l'album</mat-label>
-            <input matInput [(ngModel)]="newAlbumTitle" placeholder="Titre...">
+            <mat-label>Mood</mat-label>
+            <mat-select [(ngModel)]="selectedMood">
+              <mat-option value="">— Aucun —</mat-option>
+              @for (mood of moods; track mood) {
+                <mat-option [value]="mood">{{ mood }}</mat-option>
+              }
+            </mat-select>
           </mat-form-field>
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Année de sortie</mat-label>
-            <input matInput type="number" [(ngModel)]="newAlbumYear">
-          </mat-form-field>
-          <button mat-stroked-button (click)="showNewAlbumForm = false; newAlbumTitle = ''">
-            <mat-icon>arrow_back</mat-icon> Choisir un existant
-          </button>
-        }
-      </mat-card-content>
-    </mat-card>
+        </mat-card-content>
+      </mat-card>
 
-  </div>
+      <mat-card class="upload-card">
+        <mat-card-content>
+          <h2><mat-icon>person</mat-icon> Artiste</h2>
+          @if (!showNewArtistForm) {
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Sélectionner un artiste</mat-label>
+              <mat-select [(ngModel)]="selectedArtistId" (ngModelChange)="onArtistChange()">
+                <mat-option [value]="null">— Sélectionner —</mat-option>
+                @for (artist of artists; track artist.id) {
+                  <mat-option [value]="artist.id">{{ artist.name }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+            <button mat-stroked-button (click)="showNewArtistForm = true">
+              <mat-icon>add</mat-icon> Nouvel artiste
+            </button>
+          } @else {
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Nom de l'artiste</mat-label>
+              <input matInput [(ngModel)]="newArtistName" placeholder="Nom...">
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Biographie (optionnel)</mat-label>
+              <textarea matInput [(ngModel)]="newArtistBio" rows="2"></textarea>
+            </mat-form-field>
+            <button mat-stroked-button (click)="showNewArtistForm = false; newArtistName = ''">
+              <mat-icon>arrow_back</mat-icon> Choisir un existant
+            </button>
+          }
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="upload-card">
+        <mat-card-content>
+          <h2><mat-icon>album</mat-icon> Album (optionnel)</h2>
+          @if (!showNewAlbumForm) {
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Sélectionner un album</mat-label>
+              <mat-select [(ngModel)]="selectedAlbumId">
+                <mat-option [value]="null">— Aucun —</mat-option>
+                @for (album of filteredAlbums; track album.id) {
+                  <mat-option [value]="album.id">{{ album.title }} ({{ album.releaseYear }})</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+            <button mat-stroked-button (click)="showNewAlbumForm = true">
+              <mat-icon>add</mat-icon> Nouvel album
+            </button>
+          } @else {
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Titre de l'album</mat-label>
+              <input matInput [(ngModel)]="newAlbumTitle" placeholder="Titre...">
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Année de sortie</mat-label>
+              <input matInput type="number" [(ngModel)]="newAlbumYear">
+            </mat-form-field>
+            <button mat-stroked-button (click)="showNewAlbumForm = false; newAlbumTitle = ''">
+              <mat-icon>arrow_back</mat-icon> Choisir un existant
+            </button>
+          }
+        </mat-card-content>
+      </mat-card>
+
+    </div>
+  }
 
   @if (isUploading) {
     <mat-progress-bar mode="indeterminate" class="progress-bar"></mat-progress-bar>
@@ -138,7 +276,7 @@
             [disabled]="!canUpload || isUploading"
             (click)="upload()">
       <mat-icon>cloud_upload</mat-icon>
-      {{ isUploading ? 'Upload en cours...' : 'Uploader le titre' }}
+      {{ isUploading ? 'Import en cours...' : (mode === 'spotify' ? 'Importer depuis Spotify' : 'Uploader le titre') }}
     </button>
   </div>
 
