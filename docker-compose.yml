@@ -212,6 +212,23 @@ services:
     networks:
       - sonora-net
 
+  # ── Frontend Angular ─────────────────────────────────────────────────────────
+
+  sonora-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        SPOTIFY_CLIENT_ID: ${SPOTIFY_CLIENT_ID}
+        SPOTIFY_CLIENT_SECRET: ${SPOTIFY_CLIENT_SECRET}
+    container_name: sonora-frontend
+    hostname: sonora-frontend
+    restart: unless-stopped
+    ports:
+      - "4200:80"
+    networks:
+      - sonora-net
+
 # ── Named volumes ────────────────────────────────────────────────────────────
 
 volumes:

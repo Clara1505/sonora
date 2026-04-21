@@ -44,6 +44,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/tracks/*/stream").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/api/spotify/**").permitAll()
+                        .requestMatchers("/actuator/health").permitAll()
                         // Tout le reste nécessite une authentification
                         .anyRequest().authenticated()
                 )

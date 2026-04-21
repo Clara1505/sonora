@@ -1,3 +1,4 @@
+import { environment } from '../../environments/environment';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
@@ -16,7 +17,7 @@ export interface PlayerState {
 @Injectable({ providedIn: 'root' })
 export class PlayerService {
   private audio = new Audio();
-  private readonly API_URL = 'http://localhost:8080/api/tracks';
+  private readonly API_URL = `${environment.apiUrl}/api/tracks`;
   private playStartTime = 0;
 
   private state: PlayerState = {

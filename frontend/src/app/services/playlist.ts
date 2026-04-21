@@ -1,3 +1,4 @@
+import { environment } from '../../environments/environment';
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -5,7 +6,7 @@ import { Playlist, PlaylistCreateRequest } from '../models/playlist';
 
 @Injectable({ providedIn: 'root' })
 export class PlaylistService {
-  private readonly API_URL = 'http://localhost:8080/api/playlists';
+  private readonly API_URL = `${environment.apiUrl}/api/playlists`;
 
   constructor(private http: HttpClient) {}
 
