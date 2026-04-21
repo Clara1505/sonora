@@ -1,3 +1,4 @@
+import { environment } from '../../environments/environment';
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -14,7 +15,7 @@ export interface FavoriteResponse {
 
 @Injectable({ providedIn: 'root' })
 export class FavoriteService {
-  private readonly API_URL = 'http://localhost:8080/api/favorites';
+  private readonly API_URL = `${environment.apiUrl}/api/favorites`;
 
   constructor(private http: HttpClient) {}
 

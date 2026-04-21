@@ -16,8 +16,11 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   return next(authReq).pipe(
     catchError(err => {
       if (err.status === 401) {
-        authService.logout();
-        router.navigate(['/login']);
+        const isUpload = req.url.includes('/tracks/upload');
+        if (!isUpload) {
+          authService.logout();
+          router.navigate(['/login']);
+        }
       }
       return throwError(() => err);
     })
