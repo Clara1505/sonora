@@ -1,6 +1,5 @@
 @if (state && state.trackId) {
   <div class="player-bar">
-
     <div class="track-info">
       <div class="track-cover">
         <mat-icon>music_note</mat-icon>
@@ -17,17 +16,20 @@
     <!-- Contrôles -->
     <div class="player-controls">
       <div class="control-buttons">
-        <button mat-icon-button matTooltip="Précédent">
+        <button mat-icon-button matTooltip="Précédent"
+                [disabled]="!hasPrevious"
+                (click)="previous()">
           <mat-icon>skip_previous</mat-icon>
         </button>
         <button mat-fab color="primary" class="play-btn" (click)="togglePlay()">
           <mat-icon>{{ state.isPlaying ? 'pause' : 'play_arrow' }}</mat-icon>
         </button>
-        <button mat-icon-button matTooltip="Suivant">
+        <button mat-icon-button matTooltip="Suivant"
+                [disabled]="!hasNext"
+                (click)="next()">
           <mat-icon>skip_next</mat-icon>
         </button>
       </div>
-
       <div class="progress-bar">
         <span class="time">{{ formatTime(state.currentTime) }}</span>
         <input
@@ -56,6 +58,5 @@
         [value]="state.volume"
         (change)="onVolumeChange($event)">
     </div>
-
   </div>
 }

@@ -36,6 +36,22 @@ export class PlayerBar implements OnInit {
     this.playerService.togglePlay();
   }
 
+  next(): void {
+    this.playerService.next();
+  }
+
+  previous(): void {
+    this.playerService.previous();
+  }
+
+  get hasNext(): boolean {
+    return this.playerService.hasNext();
+  }
+
+  get hasPrevious(): boolean {
+    return this.playerService.hasPrevious();
+  }
+
   toggleMute(): void {
     this.playerService.toggleMute();
   }

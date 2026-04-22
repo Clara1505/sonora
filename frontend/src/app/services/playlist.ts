@@ -1,8 +1,8 @@
-import { environment } from '../../environments/environment';
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Playlist, PlaylistCreateRequest } from '../models/playlist';
+import { environment } from '../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class PlaylistService {
@@ -24,5 +24,13 @@ export class PlaylistService {
 
   delete(id: number): Observable<void> {
     return this.http.delete<void>(`${this.API_URL}/${id}`);
+  }
+
+  addTrack(playlistId: number, trackId: number): Observable<Playlist> {
+    return this.http.post<Playlist>(`${this.API_URL}/${playlistId}/tracks/${trackId}`, {});
+  }
+
+  removeTrack(playlistId: number, trackId: number): Observable<Playlist> {
+    return this.http.delete<Playlist>(`${this.API_URL}/${playlistId}/tracks/${trackId}`);
   }
 }
