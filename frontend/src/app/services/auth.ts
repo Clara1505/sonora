@@ -3,20 +3,19 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { AuthRequest, AuthResponse, RegisterRequest, User } from '../models/user';
+import { PlayerService } from './player';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-
   private readonly API_URL = `${environment.apiUrl}/api/auth`;
   private readonly TOKEN_KEY = 'sonora_token';
   private readonly USER_KEY = 'sonora_user';
-
   private currentUserSubject = new BehaviorSubject<User | null>(this.getUserFromStorage());
   currentUser$ = this.currentUserSubject.asObservable();
 
-  private http = inject(HttpClient);
+  constructor(private http: HttpClient, private playerService: PlayerService) {}
 
   register(request: RegisterRequest): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.API_URL}/register`, request).pipe(
@@ -31,6 +30,7 @@ export class AuthService {
   }
 
   logout(): void {
+    this.playerService.stop();
     localStorage.removeItem(this.TOKEN_KEY);
     localStorage.removeItem(this.USER_KEY);
     this.currentUserSubject.next(null);
@@ -55,7 +55,7 @@ export class AuthService {
       role: response.role
     }));
     this.currentUserSubject.next({
-      id: 0, // on n'a pas l'id dans la réponse
+      id: 0,
       email: response.email,
       role: response.role,
       createdAt: ''
