@@ -5,6 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatSliderModule } from '@angular/material/slider';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { PlayerService, PlayerState } from '../../services/player';
+import { FavoriteService } from '../../services/favorite';
 import { FormsModule } from '@angular/forms';
 
 @Component({
@@ -23,13 +24,45 @@ import { FormsModule } from '@angular/forms';
 })
 export class PlayerBar implements OnInit {
   state: PlayerState | null = null;
+  favoriteIds: Set<number> = new Set();
 
-  constructor(private playerService: PlayerService) {}
+  constructor(
+    private playerService: PlayerService,
+    private favoriteService: FavoriteService
+  ) {}
 
   ngOnInit(): void {
     this.playerService.state$.subscribe(state => {
       this.state = state;
     });
+    this.loadFavorites();
+  }
+
+  loadFavorites(): void {
+    this.favoriteService.getAll().subscribe({
+      next: (favorites) => {
+        this.favoriteIds = new Set(favorites.map(f => f.trackId));
+      },
+      error: () => {}
+    });
+  }
+
+  isFavorite(): boolean {
+    return this.state?.trackId ? this.favoriteIds.has(this.state.trackId) : false;
+  }
+
+  toggleFavorite(): void {
+    if (!this.state?.trackId) return;
+    const trackId = this.state.trackId;
+    if (this.isFavorite()) {
+      this.favoriteService.remove(trackId).subscribe(() => {
+        this.favoriteIds.delete(trackId);
+      });
+    } else {
+      this.favoriteService.add(trackId).subscribe(() => {
+        this.favoriteIds.add(trackId);
+      });
+    }
   }
 
   togglePlay(): void {
