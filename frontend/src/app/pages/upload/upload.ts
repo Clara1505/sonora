@@ -169,7 +169,7 @@ export class Upload implements OnInit {
   async createArtistIfNeeded(): Promise<number> {
     if (!this.showNewArtistForm) return this.selectedArtistId!;
     const artist = await this.artistService.create({ name: this.newArtistName, bio: this.newArtistBio }).toPromise();
-    this.artists = [...this.artists, artist];
+    this.artists = [...this.artists, artist!];
     return artist!.id;
   }
 

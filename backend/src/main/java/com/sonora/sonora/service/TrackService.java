@@ -15,18 +15,29 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+/** Service handling track CRUD operations. */
 @Service
 @RequiredArgsConstructor
 @Transactional
 public class TrackService {
 
+    /** Repository for track persistence operations. */
     private final TrackRepository trackRepository;
+    /** Repository for artist lookups. */
     private final ArtistRepository artistRepository;
+    /** Repository for album lookups. */
     private final AlbumRepository albumRepository;
 
-    public TrackDto create(TrackCreateUpdateDto dto) {
+    /**
+     * Creates a new track.
+     *
+     * @param dto track payload
+     * @return created track
+     */
+    public TrackDto create(final TrackCreateUpdateDto dto) {
         Artist artist = artistRepository.findById(dto.artistId())
-                .orElseThrow(() -> new ResourceNotFoundException("Artist not found: " + dto.artistId()));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Artist not found: " + dto.artistId()));
 
         Album album = resolveAlbum(dto.albumId());
 
@@ -43,6 +54,11 @@ public class TrackService {
         return toDto(trackRepository.save(track));
     }
 
+    /**
+     * Returns all tracks.
+     *
+     * @return list of tracks
+     */
     @Transactional(readOnly = true)
     public List<TrackDto> getAll() {
         return trackRepository.findAll().stream()
@@ -50,19 +66,35 @@ public class TrackService {
                 .toList();
     }
 
+    /**
+     * Returns one track by identifier.
+     *
+     * @param id track identifier
+     * @return matching track
+     */
     @Transactional(readOnly = true)
-    public TrackDto getById(Long id) {
+    public TrackDto getById(final Long id) {
         Track track = trackRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Track not found: " + id));
+            .orElseThrow(() -> new ResourceNotFoundException(
+                "Track not found: " + id));
         return toDto(track);
     }
 
-    public TrackDto update(Long id, TrackCreateUpdateDto dto) {
+    /**
+     * Updates an existing track.
+     *
+     * @param id track identifier
+     * @param dto update payload
+     * @return updated track
+     */
+    public TrackDto update(final Long id, final TrackCreateUpdateDto dto) {
         Track track = trackRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Track not found: " + id));
+            .orElseThrow(() -> new ResourceNotFoundException(
+                "Track not found: " + id));
 
         Artist artist = artistRepository.findById(dto.artistId())
-                .orElseThrow(() -> new ResourceNotFoundException("Artist not found: " + dto.artistId()));
+            .orElseThrow(() -> new ResourceNotFoundException(
+                "Artist not found: " + dto.artistId()));
 
         Album album = resolveAlbum(dto.albumId());
 
@@ -77,22 +109,40 @@ public class TrackService {
         return toDto(trackRepository.save(track));
     }
 
-    public void delete(Long id) {
+    /**
+     * Deletes a track by identifier.
+     *
+     * @param id track identifier
+     */
+    public void delete(final Long id) {
         if (!trackRepository.existsById(id)) {
             throw new ResourceNotFoundException("Track not found: " + id);
         }
         trackRepository.deleteById(id);
     }
 
-    private Album resolveAlbum(Long albumId) {
+    /**
+     * Resolves an album by identifier if provided.
+     *
+     * @param albumId album identifier or null
+     * @return resolved album or null
+     */
+    private Album resolveAlbum(final Long albumId) {
         if (albumId == null) {
             return null;
         }
         return albumRepository.findById(albumId)
-                .orElseThrow(() -> new ResourceNotFoundException("Album not found: " + albumId));
+            .orElseThrow(() -> new ResourceNotFoundException(
+                "Album not found: " + albumId));
     }
 
-    private TrackDto toDto(Track track) {
+    /**
+     * Maps a track entity to DTO.
+     *
+     * @param track source entity
+     * @return mapped DTO
+     */
+    private TrackDto toDto(final Track track) {
         return new TrackDto(
                 track.getId(),
                 track.getTitle(),

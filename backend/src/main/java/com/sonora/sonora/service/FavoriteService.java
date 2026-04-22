@@ -15,25 +15,41 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+/** Service handling favorite track operations for users. */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class FavoriteService {
 
+    /** Repository for favorites. */
     private final FavoriteRepository favoriteRepository;
-    private final TrackRepository    trackRepository;
-    private final UserRepository     userRepository;
+    /** Repository for track lookups. */
+    private final TrackRepository trackRepository;
+    /** Repository for user lookups. */
+    private final UserRepository userRepository;
 
-    public FavoriteResponse addFavorite(Long trackId, String userEmail) {
-        if (favoriteRepository.existsByUserEmailAndTrackId(userEmail, trackId)) {
+    /**
+     * Adds a track to the user's favorites.
+     *
+     * @param trackId track identifier
+     * @param userEmail user email
+     * @return created favorite response
+     */
+    public FavoriteResponse addFavorite(final Long trackId,
+                                        final String userEmail) {
+        if (favoriteRepository.existsByUserEmailAndTrackId(
+                userEmail,
+                trackId)) {
             throw new AlreadyFavoriteException(trackId);
         }
 
         Track track = trackRepository.findById(trackId)
-                .orElseThrow(() -> new ResourceNotFoundException("Track not found: " + trackId));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Track not found: " + trackId));
 
         User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userEmail));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "User not found: " + userEmail));
 
         Favorite favorite = Favorite.builder()
                 .track(track)
@@ -45,8 +61,16 @@ public class FavoriteService {
         return FavoriteResponse.from(saved);
     }
 
-    public void removeFavorite(Long trackId, String userEmail) {
-        Favorite favorite = favoriteRepository.findByUserEmailAndTrackId(userEmail, trackId)
+    /**
+     * Removes a track from the user's favorites.
+     *
+     * @param trackId track identifier
+     * @param userEmail user email
+     */
+    public void removeFavorite(final Long trackId, final String userEmail) {
+        Favorite favorite = favoriteRepository.findByUserEmailAndTrackId(
+                        userEmail,
+                        trackId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Favorite not found for track: " + trackId));
 
@@ -54,7 +78,13 @@ public class FavoriteService {
         log.info("Favori supprimé : user={}, trackId={}", userEmail, trackId);
     }
 
-    public List<FavoriteResponse> listFavorites(String userEmail) {
+    /**
+     * Lists all favorite tracks of a user.
+     *
+     * @param userEmail user email
+     * @return list of favorite responses
+     */
+    public List<FavoriteResponse> listFavorites(final String userEmail) {
         return favoriteRepository.findByUserEmail(userEmail)
                 .stream()
                 .map(FavoriteResponse::from)

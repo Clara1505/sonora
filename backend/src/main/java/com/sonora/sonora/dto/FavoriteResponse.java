@@ -8,18 +8,32 @@ import lombok.Data;
 
 import java.time.LocalDateTime;
 
+/** Favorite response payload returned by favorite endpoints. */
 @Data
 @Builder
 public class FavoriteResponse {
-    private Long          id;
-    private Long          trackId;
-    private String        trackTitle;
-    private String        artistName;
-    private Genre         genre;
-    private Mood          mood;
+    /** Favorite identifier. */
+    private Long id;
+    /** Referenced track identifier. */
+    private Long trackId;
+    /** Referenced track title. */
+    private String trackTitle;
+    /** Referenced track artist name. */
+    private String artistName;
+    /** Referenced track genre. */
+    private Genre genre;
+    /** Referenced track mood. */
+    private Mood mood;
+    /** Favorite creation timestamp. */
     private LocalDateTime addedAt;
 
-    public static FavoriteResponse from(Favorite favorite) {
+    /**
+     * Maps a favorite entity to an API response.
+     *
+     * @param favorite favorite entity to map
+     * @return mapped response
+     */
+    public static FavoriteResponse from(final Favorite favorite) {
         return FavoriteResponse.builder()
                 .id(favorite.getId())
                 .trackId(favorite.getTrack().getId())
