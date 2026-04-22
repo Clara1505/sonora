@@ -45,4 +45,20 @@ public class PlaylistController {
             @AuthenticationPrincipal String email) {
         playlistService.delete(id, email);
     }
+
+    @PostMapping("/{id}/tracks/{trackId}")
+    public ResponseEntity<PlaylistDto> addTrack(
+            @PathVariable Long id,
+            @PathVariable Long trackId,
+            @AuthenticationPrincipal String email) {
+        return ResponseEntity.ok(playlistService.addTrack(id, trackId, email));
+    }
+
+    @DeleteMapping("/{id}/tracks/{trackId}")
+    public ResponseEntity<PlaylistDto> removeTrack(
+            @PathVariable Long id,
+            @PathVariable Long trackId,
+            @AuthenticationPrincipal String email) {
+        return ResponseEntity.ok(playlistService.removeTrack(id, trackId, email));
+    }
 }

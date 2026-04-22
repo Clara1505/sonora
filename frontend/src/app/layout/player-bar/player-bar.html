@@ -9,25 +9,32 @@
         <span class="track-title">{{ state.trackTitle }}</span>
         <span class="track-artist">{{ state.artistName }}</span>
       </div>
-      <button mat-icon-button class="favorite-btn">
-        <mat-icon>favorite_border</mat-icon>
+      <button mat-icon-button class="favorite-btn"
+              [matTooltip]="isFavorite() ? 'Retirer des favoris' : 'Ajouter aux favoris'"
+              (click)="toggleFavorite()">
+        <mat-icon [style.color]="isFavorite() ? '#e91e63' : ''">
+          {{ isFavorite() ? 'favorite' : 'favorite_border' }}
+        </mat-icon>
       </button>
     </div>
 
     <!-- Contrôles -->
     <div class="player-controls">
       <div class="control-buttons">
-        <button mat-icon-button matTooltip="Précédent">
+        <button mat-icon-button matTooltip="Précédent"
+                [disabled]="!hasPrevious"
+                (click)="previous()">
           <mat-icon>skip_previous</mat-icon>
         </button>
         <button mat-fab color="primary" class="play-btn" (click)="togglePlay()">
           <mat-icon>{{ state.isPlaying ? 'pause' : 'play_arrow' }}</mat-icon>
         </button>
-        <button mat-icon-button matTooltip="Suivant">
+        <button mat-icon-button matTooltip="Suivant"
+                [disabled]="!hasNext"
+                (click)="next()">
           <mat-icon>skip_next</mat-icon>
         </button>
       </div>
-
       <div class="progress-bar">
         <span class="time">{{ formatTime(state.currentTime) }}</span>
         <input

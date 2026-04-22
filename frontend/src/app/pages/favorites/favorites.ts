@@ -49,7 +49,13 @@ export class Favorites implements OnInit {
   }
 
   playTrack(favorite: FavoriteResponse): void {
-    this.playerService.play(favorite.trackId, favorite.trackTitle, favorite.artistName);
+    const queue = this.favorites.map(f => ({
+      id: f.trackId,
+      title: f.trackTitle,
+      artist: f.artistName
+    }));
+    const index = queue.findIndex(f => f.id === favorite.trackId);
+    this.playerService.setQueue(queue, index >= 0 ? index : 0);
   }
 
   removeFavorite(favorite: FavoriteResponse): void {

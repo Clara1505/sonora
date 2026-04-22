@@ -73,6 +73,22 @@ public class PlaylistService {
         playlistRepository.delete(playlist);
     }
 
+    public PlaylistDto addTrack(Long playlistId, Long trackId, String userEmail) {
+        Playlist playlist = findOwnedPlaylist(playlistId, userEmail);
+        Track track = trackRepository.findById(trackId)
+                .orElseThrow(() -> new ResourceNotFoundException("Track not found: " + trackId));
+        if (!playlist.getTracks().contains(track)) {
+            playlist.getTracks().add(track);
+        }
+        return toDto(playlistRepository.save(playlist));
+    }
+
+    public PlaylistDto removeTrack(Long playlistId, Long trackId, String userEmail) {
+        Playlist playlist = findOwnedPlaylist(playlistId, userEmail);
+        playlist.getTracks().removeIf(t -> t.getId().equals(trackId));
+        return toDto(playlistRepository.save(playlist));
+    }
+
     private Playlist findOwnedPlaylist(Long id, String userEmail) {
         Playlist playlist = playlistRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Playlist not found: " + id));

@@ -1,7 +1,7 @@
-import { environment } from '../../environments/environment';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../../environments/environment';
 
 export interface PlayerState {
   isPlaying: boolean;
@@ -19,6 +19,10 @@ export class PlayerService {
   private audio = new Audio();
   private readonly API_URL = `${environment.apiUrl}/api/tracks`;
   private playStartTime = 0;
+
+  // ── Queue ─────────────────────────────────────────────────
+  private queue: { id: number; title: string; artist: string }[] = [];
+  private queueIndex = 0;
 
   private state: PlayerState = {
     isPlaying: false,
@@ -47,7 +51,12 @@ export class PlayerService {
 
     this.audio.onended = () => {
       this.notifyTrackPlayed();
-      this.updateState({ isPlaying: false, currentTime: 0 });
+      // Passe automatiquement au suivant si disponible
+      if (this.hasNext()) {
+        this.next();
+      } else {
+        this.updateState({ isPlaying: false, currentTime: 0 });
+      }
     };
 
     this.audio.onplay = () => {
@@ -68,7 +77,6 @@ export class PlayerService {
       return;
     }
 
-    // Notifie l'écoute de la track précédente avant de changer
     if (this.state.trackId && !this.audio.paused) {
       this.notifyTrackPlayed();
     }
@@ -78,6 +86,44 @@ export class PlayerService {
     this.audio.play();
     this.updateState({ trackId, trackTitle, artistName, currentTime: 0 });
   }
+
+  // ── Queue management ──────────────────────────────────────
+
+  setQueue(tracks: { id: number; title: string; artist: string }[], startIndex = 0): void {
+    this.queue = tracks;
+    this.queueIndex = startIndex;
+    const t = tracks[startIndex];
+    if (t) this.play(t.id, t.title, t.artist);
+  }
+
+  next(): void {
+    if (!this.hasNext()) return;
+    this.queueIndex++;
+    const t = this.queue[this.queueIndex];
+    this.play(t.id, t.title, t.artist);
+  }
+
+  previous(): void {
+    // Si on est à plus de 3s dans le morceau, on revient au début
+    if (this.audio.currentTime > 3) {
+      this.seek(0);
+      return;
+    }
+    if (!this.hasPrevious()) return;
+    this.queueIndex--;
+    const t = this.queue[this.queueIndex];
+    this.play(t.id, t.title, t.artist);
+  }
+
+  hasNext(): boolean {
+    return this.queue.length > 0 && this.queueIndex < this.queue.length - 1;
+  }
+
+  hasPrevious(): boolean {
+    return this.queue.length > 0 && (this.queueIndex > 0 || this.audio.currentTime > 3);
+  }
+
+  // ── Playback controls ─────────────────────────────────────
 
   togglePlay(): void {
     if (this.audio.paused) {

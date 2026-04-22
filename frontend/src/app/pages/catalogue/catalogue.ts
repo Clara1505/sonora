@@ -110,11 +110,13 @@ export class Catalogue implements OnInit {
   }
 
   playTrack(track: any): void {
-    this.playerService.play(
-      track.id,
-      track.title,
-      this.getArtistName(track.artistId)
-    );
+    const queue = this.filteredTracks.map(t => ({
+      id: t.id,
+      title: t.title,
+      artist: this.getArtistName(t.artistId)
+    }));
+    const index = queue.findIndex(t => t.id === track.id);
+    this.playerService.setQueue(queue, index >= 0 ? index : 0);
   }
 
   applyFilters(): void {
@@ -123,10 +125,8 @@ export class Catalogue implements OnInit {
       const matchesSearch = !this.searchQuery ||
         track.title.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
         artistName.toLowerCase().includes(this.searchQuery.toLowerCase());
-
       const matchesGenre = !this.selectedGenre || track.genre === this.selectedGenre;
       const matchesMood = !this.selectedMood || track.mood === this.selectedMood;
-
       return matchesSearch && matchesGenre && matchesMood;
     });
   }
