@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -24,12 +24,10 @@ import { FormsModule } from '@angular/forms';
 })
 export class PlayerBar implements OnInit {
   state: PlayerState | null = null;
-  favoriteIds: Set<number> = new Set();
+  favoriteIds = new Set<number>();
 
-  constructor(
-    private playerService: PlayerService,
-    private favoriteService: FavoriteService
-  ) {}
+  private playerService = inject(PlayerService);
+  private favoriteService = inject(FavoriteService);
 
   ngOnInit(): void {
     this.playerService.state$.subscribe(state => {
@@ -43,7 +41,6 @@ export class PlayerBar implements OnInit {
       next: (favorites) => {
         this.favoriteIds = new Set(favorites.map(f => f.trackId));
       },
-      error: () => {}
     });
   }
 
@@ -89,12 +86,12 @@ export class PlayerBar implements OnInit {
     this.playerService.toggleMute();
   }
 
-  onSeek(event: any): void {
-    this.playerService.seek(event.target.value);
+  onSeek(event: Event): void {
+    this.playerService.seek(+(event.target as HTMLInputElement).value);
   }
 
-  onVolumeChange(event: any): void {
-    this.playerService.setVolume(event.target.value);
+  onVolumeChange(event: Event): void {
+    this.playerService.setVolume(+(event.target as HTMLInputElement).value);
   }
 
   formatTime(seconds: number): string {

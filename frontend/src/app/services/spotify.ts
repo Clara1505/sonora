@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -23,11 +23,11 @@ export class SpotifyService {
 
   private readonly apiUrl = environment.apiUrl;
 
-  constructor(private http: HttpClient) {}
+  private http = inject(HttpClient);
 
   searchTracks(query: string): Observable<SpotifyTrack[]> {
     return this.http
-      .get<any>(`${this.apiUrl}/api/spotify/search?q=${encodeURIComponent(query)}`)
+      .get<{ tracks: { items: SpotifyTrack[] } }>(`${this.apiUrl}/api/spotify/search?q=${encodeURIComponent(query)}`)
       .pipe(map(response => response.tracks.items));
   }
 }

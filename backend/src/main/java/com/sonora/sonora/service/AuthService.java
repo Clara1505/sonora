@@ -10,26 +10,42 @@ import com.sonora.sonora.security.JwtService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+/** Service handling user registration and authentication. */
 @Service
 public class AuthService {
 
+    /** Repository for user persistence operations. */
     private final UserRepository userRepository;
+
+    /** Encoder used to hash and verify passwords. */
     private final PasswordEncoder passwordEncoder;
+
+    /** Service used to generate JWT tokens. */
     private final JwtService jwtService;
 
-    public AuthService(UserRepository userRepository,
-                       PasswordEncoder passwordEncoder,
-                       JwtService jwtService) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.jwtService = jwtService;
+    /**
+     * Creates a new authentication service.
+     *
+     * @param repository user repository
+     * @param encoder password encoder
+     * @param service JWT service
+     */
+    public AuthService(final UserRepository repository,
+                       final PasswordEncoder encoder,
+                       final JwtService service) {
+        this.userRepository = repository;
+        this.passwordEncoder = encoder;
+        this.jwtService = service;
     }
 
     /**
-     * Inscrit un nouvel utilisateur avec le rôle USER par défaut.
+     * Registers a new user with the default USER role.
+     *
+     * @param request registration payload
+     * @return authentication response containing JWT token
      * @throws IllegalArgumentException si l'email est déjà utilisé
      */
-    public AuthResponse register(RegisterRequest request) {
+    public AuthResponse register(final RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new IllegalArgumentException("Cet email est déjà utilisé");
         }
@@ -42,7 +58,10 @@ public class AuthService {
 
         userRepository.save(user);
 
-        String token = jwtService.generateToken(user.getEmail(), user.getRole().name());
+        String token = jwtService.generateToken(
+            user.getEmail(),
+            user.getRole().name()
+        );
 
         return AuthResponse.builder()
                 .token(token)
@@ -52,18 +71,28 @@ public class AuthService {
     }
 
     /**
-     * Authentifie un utilisateur existant.
+         * Authenticates an existing user.
+         *
+         * @param request login payload
+         * @return authentication response containing JWT token
      * @throws IllegalArgumentException si les identifiants sont incorrects
      */
-    public AuthResponse login(LoginRequest request) {
+        public AuthResponse login(final LoginRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new IllegalArgumentException("Email ou mot de passe incorrect"));
+            .orElseThrow(() -> new IllegalArgumentException(
+                "Email ou mot de passe incorrect"));
 
-        if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
-            throw new IllegalArgumentException("Email ou mot de passe incorrect");
+        if (!passwordEncoder.matches(
+                request.getPassword(),
+                user.getPasswordHash())) {
+            throw new IllegalArgumentException(
+                    "Email ou mot de passe incorrect");
         }
 
-        String token = jwtService.generateToken(user.getEmail(), user.getRole().name());
+        String token = jwtService.generateToken(
+            user.getEmail(),
+            user.getRole().name()
+        );
 
         return AuthResponse.builder()
                 .token(token)

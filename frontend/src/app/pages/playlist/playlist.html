@@ -51,7 +51,9 @@
       @for (playlist of playlists; track playlist.id) {
         <div class="playlist-item"
              [class.active]="selectedPlaylist?.id === playlist.id"
-             (click)="selectPlaylist(playlist)">
+             (click)="selectPlaylist(playlist)"
+             (keydown.enter)="selectPlaylist(playlist)"
+             tabindex="0">
           <div class="playlist-icon" [class.smart]="playlist.type === 'SMART'">
             <mat-icon>{{ playlist.type === 'SMART' ? 'auto_awesome' : 'queue_music' }}</mat-icon>
           </div>
@@ -145,8 +147,8 @@
 
 <!-- ── Modal ajout de titres ── -->
 @if (showAddModal) {
-  <div class="modal-backdrop" (click)="closeAddModal()">
-    <div class="modal-panel" (click)="$event.stopPropagation()">
+  <div class="modal-backdrop" (click)="closeAddModal()" (keydown.escape)="closeAddModal()" tabindex="0">
+    <div class="modal-panel" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()" tabindex="-1">
 
       <div class="modal-header">
         <h2><mat-icon>playlist_add</mat-icon> Ajouter des titres</h2>

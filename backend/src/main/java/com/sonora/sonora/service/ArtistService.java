@@ -11,14 +11,22 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+/** Service handling artist CRUD operations. */
 @Service
 @RequiredArgsConstructor
 @Transactional
 public class ArtistService {
 
+    /** Repository for artist persistence operations. */
     private final ArtistRepository artistRepository;
 
-    public ArtistDto create(ArtistCreateUpdateDto dto) {
+    /**
+     * Creates a new artist.
+     *
+     * @param dto artist payload
+     * @return created artist
+     */
+    public ArtistDto create(final ArtistCreateUpdateDto dto) {
         Artist artist = Artist.builder()
                 .name(dto.name())
                 .bio(dto.bio())
@@ -28,6 +36,11 @@ public class ArtistService {
         return toDto(artistRepository.save(artist));
     }
 
+    /**
+     * Returns all artists.
+     *
+     * @return list of artists
+     */
     @Transactional(readOnly = true)
     public List<ArtistDto> getAll() {
         return artistRepository.findAll().stream()
@@ -35,16 +48,31 @@ public class ArtistService {
                 .toList();
     }
 
+    /**
+     * Returns an artist by identifier.
+     *
+     * @param id artist identifier
+     * @return matching artist
+     */
     @Transactional(readOnly = true)
-    public ArtistDto getById(Long id) {
+    public ArtistDto getById(final Long id) {
         Artist artist = artistRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Artist not found: " + id));
+            .orElseThrow(() -> new ResourceNotFoundException(
+                "Artist not found: " + id));
         return toDto(artist);
     }
 
-    public ArtistDto update(Long id, ArtistCreateUpdateDto dto) {
+    /**
+     * Updates an artist.
+     *
+     * @param id artist identifier
+     * @param dto update payload
+     * @return updated artist
+     */
+    public ArtistDto update(final Long id, final ArtistCreateUpdateDto dto) {
         Artist artist = artistRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Artist not found: " + id));
+            .orElseThrow(() -> new ResourceNotFoundException(
+                "Artist not found: " + id));
 
         artist.setName(dto.name());
         artist.setBio(dto.bio());
@@ -53,14 +81,25 @@ public class ArtistService {
         return toDto(artistRepository.save(artist));
     }
 
-    public void delete(Long id) {
+    /**
+     * Deletes an artist.
+     *
+     * @param id artist identifier
+     */
+    public void delete(final Long id) {
         if (!artistRepository.existsById(id)) {
             throw new ResourceNotFoundException("Artist not found: " + id);
         }
         artistRepository.deleteById(id);
     }
 
-    private ArtistDto toDto(Artist artist) {
+    /**
+     * Maps an artist entity to DTO.
+     *
+     * @param artist source entity
+     * @return mapped DTO
+     */
+    private ArtistDto toDto(final Artist artist) {
         return new ArtistDto(
                 artist.getId(),
                 artist.getName(),

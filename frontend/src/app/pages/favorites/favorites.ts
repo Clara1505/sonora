@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
@@ -26,10 +26,8 @@ export class Favorites implements OnInit {
   favorites: FavoriteResponse[] = [];
   isLoading = false;
 
-  constructor(
-    private favoriteService: FavoriteService,
-    private playerService: PlayerService
-  ) {}
+  private favoriteService = inject(FavoriteService);
+  private playerService = inject(PlayerService);
 
   ngOnInit(): void {
     this.loadFavorites();

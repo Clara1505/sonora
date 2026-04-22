@@ -5,10 +5,14 @@ import lombok.Data;
 
 import java.util.List;
 
+/** Aggregated listening statistics for a user. */
 @Data
 @Builder
 public class UserStatsResponse {
-    private String             userEmail;
-    private long               totalPlays;
+    /** User email for which statistics are returned. */
+    private String userEmail;
+    /** Total number of played tracks. */
+    private long totalPlays;
+    /** Most played tracks for the user. */
     private List<TrackStatsResponse> topTracks;
 }

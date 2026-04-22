@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -10,7 +10,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { Genre, Mood } from '../../models/track';
+import { Genre, Mood, TrackDto } from '../../models/track';
 import { TrackService } from '../../services/track';
 import { ArtistService } from '../../services/artist';
 import { PlayerService } from '../../services/player';
@@ -37,10 +37,10 @@ import { forkJoin } from 'rxjs';
   styleUrl: './catalogue.scss'
 })
 export class Catalogue implements OnInit {
-  tracks: any[] = [];
-  filteredTracks: any[] = [];
-  artistMap: Map<number, string> = new Map();
-  favoriteIds: Set<number> = new Set();
+  tracks: TrackDto[] = [];
+  filteredTracks: TrackDto[] = [];
+  artistMap = new Map<number, string>();
+  favoriteIds = new Set<number>();
   isLoading = false;
 
   searchQuery = '';
@@ -50,12 +50,10 @@ export class Catalogue implements OnInit {
   genres: Genre[] = ['POP', 'ROCK', 'JAZZ', 'CLASSICAL', 'ELECTRONIC', 'HIP_HOP', 'REGGAE', 'METAL', 'RNB', 'OTHER'];
   moods: Mood[] = ['HAPPY', 'SAD', 'CHILL', 'FOCUS', 'HYPE', 'ROMANTIC', 'WORKOUT', 'ANGRY'];
 
-  constructor(
-    private trackService: TrackService,
-    private artistService: ArtistService,
-    private playerService: PlayerService,
-    private favoriteService: FavoriteService
-  ) {}
+  private trackService = inject(TrackService);
+  private artistService = inject(ArtistService);
+  private playerService = inject(PlayerService);
+  private favoriteService = inject(FavoriteService);
 
   ngOnInit(): void {
     this.loadTracks();
@@ -70,8 +68,8 @@ export class Catalogue implements OnInit {
     }).subscribe({
       next: ({ artists, tracks }) => {
         artists.forEach(a => this.artistMap.set(a.id, a.name));
-        this.tracks = tracks;
-        this.filteredTracks = tracks;
+        this.tracks = tracks as unknown as TrackDto[];
+        this.filteredTracks = tracks as unknown as TrackDto[];
         this.isLoading = false;
       },
       error: () => {
@@ -85,7 +83,6 @@ export class Catalogue implements OnInit {
       next: (favorites) => {
         favorites.forEach(f => this.favoriteIds.add(f.trackId));
       },
-      error: () => {}
     });
   }
 
@@ -93,7 +90,7 @@ export class Catalogue implements OnInit {
     return this.favoriteIds.has(trackId);
   }
 
-  toggleFavorite(track: any): void {
+  toggleFavorite(track: TrackDto): void {
     if (this.isFavorite(track.id)) {
       this.favoriteService.remove(track.id).subscribe(() => {
         this.favoriteIds.delete(track.id);
@@ -109,7 +106,7 @@ export class Catalogue implements OnInit {
     return this.artistMap.get(artistId) || 'Artiste inconnu';
   }
 
-  playTrack(track: any): void {
+  playTrack(track: TrackDto): void {
     const queue = this.filteredTracks.map(t => ({
       id: t.id,
       title: t.title,

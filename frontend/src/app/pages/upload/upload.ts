@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
@@ -15,7 +15,8 @@ import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatListModule } from '@angular/material/list';
 import { HttpClient } from '@angular/common/http';
 import { ArtistService } from '../../services/artist';
-import { AlbumService } from '../../services/album';
+import { AlbumService, AlbumDto } from '../../services/album';
+import { Artist } from '../../models/artist';
 import { SpotifyService, SpotifyTrack } from '../../services/spotify';
 import { Genre, Mood } from '../../models/track';
 import { environment } from '../../../environments/environment';
@@ -58,15 +59,15 @@ export class Upload implements OnInit {
   selectedFile: File | null = null;
 
   // Artiste
-  artists: any[] = [];
+  artists: Artist[] = [];
   selectedArtistId: number | null = null;
   showNewArtistForm = false;
   newArtistName = '';
   newArtistBio = '';
 
   // Album
-  albums: any[] = [];
-  filteredAlbums: any[] = [];
+  albums: AlbumDto[] = [];
+  filteredAlbums: AlbumDto[] = [];
   selectedAlbumId: number | null = null;
   showNewAlbumForm = false;
   newAlbumTitle = '';
@@ -82,14 +83,12 @@ export class Upload implements OnInit {
 
   isUploading = false;
 
-  constructor(
-    private artistService: ArtistService,
-    private albumService: AlbumService,
-    private spotifyService: SpotifyService,
-    private http: HttpClient,
-    private snackBar: MatSnackBar,
-    private router: Router
-  ) {}
+  private artistService = inject(ArtistService);
+  private albumService = inject(AlbumService);
+  private spotifyService = inject(SpotifyService);
+  private http = inject(HttpClient);
+  private snackBar = inject(MatSnackBar);
+  private router = inject(Router);
 
   ngOnInit(): void {
     this.loadArtists();
@@ -120,8 +119,8 @@ export class Upload implements OnInit {
     }
   }
 
-  onFileSelected(event: any): void {
-    const file = event.target.files[0];
+  onFileSelected(event: Event): void {
+    const file = (event.target as HTMLInputElement).files?.[0];
     if (file) {
       this.selectedFile = file;
       if (!this.trackTitle) this.trackTitle = file.name.replace(/\.[^.]+$/, '');
@@ -154,8 +153,8 @@ export class Upload implements OnInit {
     this.showNewAlbumForm = true;
   }
 
-  onSpotifyFileSelected(event: any): void {
-    const file = event.target.files[0];
+  onSpotifyFileSelected(event: Event): void {
+    const file = (event.target as HTMLInputElement).files?.[0];
     if (file) this.spotifyFallbackFile = file;
   }
 
@@ -170,15 +169,15 @@ export class Upload implements OnInit {
   async createArtistIfNeeded(): Promise<number> {
     if (!this.showNewArtistForm) return this.selectedArtistId!;
     const artist = await this.artistService.create({ name: this.newArtistName, bio: this.newArtistBio }).toPromise();
-    this.artists = [...this.artists, artist];
+    this.artists = [...this.artists, artist!];
     return artist!.id;
   }
 
   async createAlbumIfNeeded(artistId: number): Promise<number> {
     if (!this.showNewAlbumForm) return this.selectedAlbumId!;
     const album = await this.albumService.create({ title: this.newAlbumTitle, releaseYear: this.newAlbumYear, artistId }).toPromise();
-    this.albums = [...this.albums, album];
-    return (album as any)!.id;
+    this.albums = [...this.albums, album!];
+    return album!.id;
   }
 
   async fetchPreviewAsFile(previewUrl: string): Promise<File> {
@@ -188,7 +187,11 @@ export class Upload implements OnInit {
   }
 
   async upload(): Promise<void> {
-    this.mode === 'spotify' ? await this.uploadFromSpotify() : await this.uploadManual();
+    if (this.mode === 'spotify') {
+      await this.uploadFromSpotify();
+    } else {
+      await this.uploadManual();
+    }
   }
 
   async uploadFromSpotify(): Promise<void> {

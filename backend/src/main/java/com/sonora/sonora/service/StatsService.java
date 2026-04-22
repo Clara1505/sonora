@@ -13,30 +13,52 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/** Service providing listening statistics aggregations. */
 @Service
 @RequiredArgsConstructor
 public class StatsService {
 
-    private final PlayHistoryRepository playHistoryRepository;
-    private final TrackRepository       trackRepository;
+        /** Default number of top tracks to return. */
+        private static final int TOP_TRACK_LIMIT = 10;
 
-    public TrackStatsResponse getTrackStats(Long trackId) {
+        /** Repository for play history queries. */
+    private final PlayHistoryRepository playHistoryRepository;
+        /** Repository for track lookups. */
+        private final TrackRepository trackRepository;
+
+        /**
+         * Builds aggregate statistics for a track.
+         *
+         * @param trackId track identifier
+         * @return track statistics response
+         */
+        public TrackStatsResponse getTrackStats(final Long trackId) {
         var track = trackRepository.findById(trackId)
-                .orElseThrow(() -> new ResourceNotFoundException("Track not found: " + trackId));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Track not found: " + trackId));
 
         long playCount = playHistoryRepository.countByTrackId(trackId);
-        Long totalDuration = playHistoryRepository.sumDurationByTrackId(trackId);
+        Long totalDuration =
+                playHistoryRepository.sumDurationByTrackId(trackId);
 
         return TrackStatsResponse.builder()
                 .trackId(trackId)
                 .trackTitle(track.getTitle())
                 .playCount(playCount)
-                .totalDurationListened(totalDuration != null ? totalDuration : 0L)
+                .totalDurationListened(
+                        totalDuration != null ? totalDuration : 0L)
                 .build();
     }
 
-    public UserStatsResponse getUserStats(String userEmail) {
-        List<PlayHistory> history = playHistoryRepository.findByUserEmail(userEmail);
+        /**
+         * Builds aggregate listening statistics for a user.
+         *
+         * @param userEmail user email
+         * @return user statistics response
+         */
+        public UserStatsResponse getUserStats(final String userEmail) {
+        List<PlayHistory> history =
+                playHistoryRepository.findByUserEmail(userEmail);
 
         Map<Long, List<PlayHistory>> byTrack = history.stream()
                 .collect(Collectors.groupingBy(h -> h.getTrack().getId()));
@@ -44,15 +66,20 @@ public class StatsService {
         List<TrackStatsResponse> topTracks = byTrack.entrySet().stream()
                 .map(entry -> TrackStatsResponse.builder()
                         .trackId(entry.getKey())
-                        .trackTitle(entry.getValue().get(0).getTrack().getTitle())
+                        .trackTitle(
+                                entry.getValue().get(0)
+                                        .getTrack()
+                                        .getTitle())
                         .playCount(entry.getValue().size())
                         .totalDurationListened(entry.getValue().stream()
                                 .mapToLong(h -> h.getDurationListened() != null
                                         ? h.getDurationListened() : 0)
                                 .sum())
                         .build())
-                .sorted((a, b) -> Long.compare(b.getPlayCount(), a.getPlayCount()))
-                .limit(10)
+                .sorted((a, b) -> Long.compare(
+                        b.getPlayCount(),
+                        a.getPlayCount()))
+                .limit(TOP_TRACK_LIMIT)
                 .toList();
 
         return UserStatsResponse.builder()
