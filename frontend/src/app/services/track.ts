@@ -1,6 +1,6 @@
 import { environment } from '../../environments/environment';
-import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Track } from '../models/track';
 
@@ -8,7 +8,7 @@ import { Track } from '../models/track';
 export class TrackService {
   private readonly API_URL = `${environment.apiUrl}/api/tracks`;
 
-  constructor(private http: HttpClient) {}
+  private http = inject(HttpClient);
 
   getAll(): Observable<Track[]> {
     return this.http.get<Track[]>(this.API_URL);

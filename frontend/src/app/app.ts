@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
 import { Navbar } from './layout/navbar/navbar';
 import { PlayerBar } from './layout/player-bar/player-bar';
@@ -12,8 +12,7 @@ import { CommonModule } from '@angular/common';
 })
 export class App {
   title = 'frontend';
-
-  constructor(private router: Router) {}
+  private router = inject(Router);
 
   isAuthPage(): boolean {
     const url = this.router.url;

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -33,12 +33,10 @@ export class Profile implements OnInit {
   userStats: UserStatsResponse | null = null;
   isLoading = false;
 
-  constructor(
-    private authService: AuthService,
-    private statsService: StatsService,
-    private playerService: PlayerService,
-    private router: Router
-  ) {}
+  private authService = inject(AuthService);
+  private statsService = inject(StatsService);
+  private playerService = inject(PlayerService);
+  private router = inject(Router);
 
   ngOnInit(): void {
     this.authService.currentUser$.subscribe(user => {

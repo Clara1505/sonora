@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
@@ -38,7 +38,9 @@ export class PlayerService {
   private stateSubject = new BehaviorSubject<PlayerState>(this.state);
   state$ = this.stateSubject.asObservable();
 
-  constructor(private http: HttpClient) {
+  private http = inject(HttpClient);
+
+  constructor() {
     this.audio.volume = 0.8;
 
     this.audio.ontimeupdate = () => {
@@ -153,7 +155,7 @@ export class PlayerService {
     const durationListened = Math.floor(this.audio.currentTime) || 1;
     this.http.post(`${this.API_URL}/${this.state.trackId}/played`, {
       durationListened
-    }).subscribe({ error: () => {} });
+    }).subscribe();
   }
 
   private updateState(partial: Partial<PlayerState>): void {

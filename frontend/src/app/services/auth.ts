@@ -1,5 +1,5 @@
 import { environment } from '../../environments/environment';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { AuthRequest, AuthResponse, RegisterRequest, User } from '../models/user';
@@ -16,7 +16,7 @@ export class AuthService {
   private currentUserSubject = new BehaviorSubject<User | null>(this.getUserFromStorage());
   currentUser$ = this.currentUserSubject.asObservable();
 
-  constructor(private http: HttpClient) {}
+  private http = inject(HttpClient);
 
   register(request: RegisterRequest): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.API_URL}/register`, request).pipe(
