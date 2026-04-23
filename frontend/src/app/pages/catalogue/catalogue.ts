@@ -57,7 +57,10 @@ export class Catalogue implements OnInit {
 
   ngOnInit(): void {
     this.loadTracks();
-    this.loadFavorites();
+    // S'abonne au store centralisé — se met à jour quelle que soit la source
+    this.favoriteService.favoriteIds$.subscribe(ids => {
+      this.favoriteIds = ids;
+    });
   }
 
   loadTracks(): void {
@@ -72,17 +75,7 @@ export class Catalogue implements OnInit {
         this.filteredTracks = tracks as unknown as TrackDto[];
         this.isLoading = false;
       },
-      error: () => {
-        this.isLoading = false;
-      }
-    });
-  }
-
-  loadFavorites(): void {
-    this.favoriteService.getAll().subscribe({
-      next: (favorites) => {
-        favorites.forEach(f => this.favoriteIds.add(f.trackId));
-      },
+      error: () => { this.isLoading = false; }
     });
   }
 
@@ -92,13 +85,9 @@ export class Catalogue implements OnInit {
 
   toggleFavorite(track: TrackDto): void {
     if (this.isFavorite(track.id)) {
-      this.favoriteService.remove(track.id).subscribe(() => {
-        this.favoriteIds.delete(track.id);
-      });
+      this.favoriteService.remove(track.id).subscribe();
     } else {
-      this.favoriteService.add(track.id).subscribe(() => {
-        this.favoriteIds.add(track.id);
-      });
+      this.favoriteService.add(track.id).subscribe();
     }
   }
 
