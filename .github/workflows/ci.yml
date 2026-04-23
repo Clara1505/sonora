@@ -188,17 +188,16 @@ jobs:
           echo "EOF" >> "$GITHUB_OUTPUT"
 
       - name: Créer la GitHub Release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.version.outputs.TAG }}
-          release_name: "Sonora ${{ steps.version.outputs.TAG }}"
+          name: "Sonora ${{ steps.version.outputs.TAG }}"
           body: |
             ## Changements
             ${{ steps.release_notes.outputs.NOTES }}
 
             ## Image Docker
             `ghcr.io/${{ github.repository }}/sonora-backend:${{ steps.version.outputs.TAG }}`
+          token: ${{ secrets.GITHUB_TOKEN }}
           draft: false
           prerelease: false
