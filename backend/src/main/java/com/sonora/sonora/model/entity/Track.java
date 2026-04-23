@@ -70,10 +70,6 @@ public class Track {
     @JoinColumn(name = "created_by_id")
     private User createdBy;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "created_by_id")
-    private User createdBy;
-
     /** Playlists that contain this track. */
     @ManyToMany(mappedBy = "tracks")
     @Builder.Default
