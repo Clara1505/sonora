@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -29,7 +29,9 @@ export class Home {
     { icon: 'favorite', title: 'Favoris', description: 'Retrouvez vos titres préférés en un clic.' },
   ];
 
-  constructor(private authService: AuthService) {
+  private authService = inject(AuthService);
+
+  constructor() {
     this.authService.currentUser$.subscribe(user => {
       this.isLoggedIn = !!user;
     });

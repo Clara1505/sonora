@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { environment } from '../../environments/environment';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { AuthRequest, AuthResponse, RegisterRequest, User } from '../models/user';
@@ -8,14 +9,14 @@ import { AuthRequest, AuthResponse, RegisterRequest, User } from '../models/user
 })
 export class AuthService {
 
-  private readonly API_URL = 'http://localhost:8080/api/auth';
+  private readonly API_URL = `${environment.apiUrl}/api/auth`;
   private readonly TOKEN_KEY = 'sonora_token';
   private readonly USER_KEY = 'sonora_user';
 
   private currentUserSubject = new BehaviorSubject<User | null>(this.getUserFromStorage());
   currentUser$ = this.currentUserSubject.asObservable();
 
-  constructor(private http: HttpClient) {}
+  private http = inject(HttpClient);
 
   register(request: RegisterRequest): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.API_URL}/register`, request).pipe(

@@ -4,12 +4,19 @@ import com.sonora.sonora.model.enums.Genre;
 import com.sonora.sonora.model.enums.Mood;
 import lombok.Data;
 
+/** Request payload used for track upload metadata. */
 @Data
 public class TrackUploadRequest {
-    private String  title;
+    /** Track title. */
+    private String title;
+    /** Track duration in seconds. */
     private Integer duration;
-    private Long    artistId;
-    private Long    albumId;
-    private Genre   genre;
-    private Mood    mood;
+    /** Associated artist identifier. */
+    private Long artistId;
+    /** Associated album identifier. */
+    private Long albumId;
+    /** Track genre. */
+    private Genre genre;
+    /** Track mood. */
+    private Mood mood;
 }

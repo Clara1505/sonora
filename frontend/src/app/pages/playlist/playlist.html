@@ -1,5 +1,6 @@
 <div class="playlist-container">
 
+  <!-- ── Sidebar ── -->
   <div class="playlist-sidebar">
     <div class="sidebar-header">
       <h2>Mes Playlists</h2>
@@ -14,7 +15,6 @@
           <mat-label>Nom de la playlist</mat-label>
           <input matInput [(ngModel)]="newPlaylistName" placeholder="Ma playlist...">
         </mat-form-field>
-
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Type</mat-label>
           <mat-select [(ngModel)]="newPlaylistType">
@@ -22,7 +22,6 @@
             <mat-option value="SMART">Smart Playlist</mat-option>
           </mat-select>
         </mat-form-field>
-
         @if (newPlaylistType === 'SMART') {
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Mood</mat-label>
@@ -32,7 +31,6 @@
               }
             </mat-select>
           </mat-form-field>
-
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Genre</mat-label>
             <mat-select [(ngModel)]="smartGenre">
@@ -42,7 +40,6 @@
             </mat-select>
           </mat-form-field>
         }
-
         <div class="form-actions">
           <button mat-stroked-button (click)="showCreateForm = false">Annuler</button>
           <button mat-raised-button color="primary" (click)="createPlaylist()">Créer</button>
@@ -54,7 +51,9 @@
       @for (playlist of playlists; track playlist.id) {
         <div class="playlist-item"
              [class.active]="selectedPlaylist?.id === playlist.id"
-             (click)="selectPlaylist(playlist)">
+             (click)="selectPlaylist(playlist)"
+             (keydown.enter)="selectPlaylist(playlist)"
+             tabindex="0">
           <div class="playlist-icon" [class.smart]="playlist.type === 'SMART'">
             <mat-icon>{{ playlist.type === 'SMART' ? 'auto_awesome' : 'queue_music' }}</mat-icon>
           </div>
@@ -62,11 +61,16 @@
             <span class="name">{{ playlist.name }}</span>
             <span class="meta">{{ playlist.tracks.length }} titre(s)</span>
           </div>
+          <button mat-icon-button color="warn" matTooltip="Supprimer"
+                  (click)="deletePlaylist(playlist, $event)">
+            <mat-icon>delete</mat-icon>
+          </button>
         </div>
       }
     </div>
   </div>
 
+  <!-- ── Content ── -->
   <div class="playlist-content">
     @if (selectedPlaylist) {
       <div class="playlist-header">
@@ -80,39 +84,59 @@
           <h1>{{ selectedPlaylist.name }}</h1>
           <p>{{ selectedPlaylist.tracks.length }} titre(s) • {{ getTotalDuration(selectedPlaylist) }}</p>
           <div class="playlist-actions">
-            <button mat-fab color="primary">
+            <button mat-fab color="primary"
+                    [disabled]="selectedPlaylist.tracks.length === 0"
+                    (click)="playTrack(selectedPlaylist.tracks[0], $event)">
               <mat-icon>play_arrow</mat-icon>
             </button>
-            <button mat-icon-button>
+            <button mat-icon-button matTooltip="Lecture aléatoire">
               <mat-icon>shuffle</mat-icon>
             </button>
+            @if (selectedPlaylist.type === 'MANUAL') {
+              <button mat-stroked-button (click)="openAddModal()">
+                <mat-icon>playlist_add</mat-icon>
+                Ajouter des titres
+              </button>
+            }
           </div>
         </div>
       </div>
 
+      <!-- Liste des tracks -->
       <div class="tracks-list">
         @for (track of selectedPlaylist.tracks; track track.id; let i = $index) {
           <div class="track-row">
             <span class="track-number">{{ i + 1 }}</span>
             <div class="track-info">
               <span class="track-title">{{ track.title }}</span>
-              <span class="track-artist">{{ track.artist.name }}</span>
+              <span class="track-artist">{{ track.artist?.name }}</span>
             </div>
             @if (track.genre) {
               <span class="genre-chip">{{ track.genre }}</span>
             }
             <span class="track-duration">{{ formatDuration(track.duration || 0) }}</span>
-            <button mat-icon-button>
+            <button mat-icon-button matTooltip="Écouter"
+                    (click)="playTrack(track, $event)">
               <mat-icon>play_circle</mat-icon>
             </button>
+            @if (selectedPlaylist.type === 'MANUAL') {
+              <button mat-icon-button color="warn" matTooltip="Retirer"
+                      (click)="removeTrack(track.id, $event)">
+                <mat-icon>remove_circle_outline</mat-icon>
+              </button>
+            }
           </div>
         }
-
         @if (selectedPlaylist.tracks.length === 0) {
           <div class="empty-playlist">
             <mat-icon>music_off</mat-icon>
             <p>Cette playlist est vide</p>
-            <a mat-stroked-button routerLink="/catalogue">Ajouter des titres</a>
+            @if (selectedPlaylist.type === 'MANUAL') {
+              <button mat-stroked-button (click)="openAddModal()">
+                <mat-icon>playlist_add</mat-icon>
+                Ajouter des titres
+              </button>
+            }
           </div>
         }
       </div>
@@ -120,3 +144,82 @@
   </div>
 
 </div>
+
+<!-- ── Modal ajout de titres ── -->
+@if (showAddModal) {
+  <div class="modal-backdrop" (click)="closeAddModal()" (keydown.escape)="closeAddModal()" tabindex="0">
+    <div class="modal-panel" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()" tabindex="-1">
+
+      <div class="modal-header">
+        <h2><mat-icon>playlist_add</mat-icon> Ajouter des titres</h2>
+        <button mat-icon-button (click)="closeAddModal()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <div class="modal-filters">
+        <mat-form-field appearance="outline" class="filter-search">
+          <mat-label>Rechercher...</mat-label>
+          <input matInput [(ngModel)]="trackSearchQuery" placeholder="Titre ou artiste">
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="filter-select">
+          <mat-label>Genre</mat-label>
+          <mat-select [(ngModel)]="filterGenre">
+            <mat-option value="">Tous</mat-option>
+            @for (genre of genres; track genre) {
+              <mat-option [value]="genre">{{ genre }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="filter-select">
+          <mat-label>Mood</mat-label>
+          <mat-select [(ngModel)]="filterMood">
+            <mat-option value="">Tous</mat-option>
+            @for (mood of moods; track mood) {
+              <mat-option [value]="mood">{{ mood }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div class="modal-track-count">
+        {{ filteredTracks.length }} titre(s)
+      </div>
+
+      <div class="modal-tracks">
+        @for (track of filteredTracks; track track.id) {
+          <div class="modal-track-row" [class.in-playlist]="isTrackInPlaylist(track)">
+            <div class="track-info">
+              <span class="track-title">{{ track.title }}</span>
+              <span class="track-artist">{{ track.artist?.name }}</span>
+            </div>
+            <div class="track-meta">
+              @if (track.genre) {
+                <span class="genre-chip">{{ track.genre }}</span>
+              }
+              @if (track.mood) {
+                <span class="mood-chip">{{ track.mood }}</span>
+              }
+              <span class="track-duration">{{ formatDuration(track.duration || 0) }}</span>
+            </div>
+            <button mat-icon-button
+                    [color]="isTrackInPlaylist(track) ? '' : 'primary'"
+                    [matTooltip]="isTrackInPlaylist(track) ? 'Déjà ajouté' : 'Ajouter à la playlist'"
+                    [disabled]="isTrackInPlaylist(track)"
+                    (click)="addTrack(track)">
+              <mat-icon>{{ isTrackInPlaylist(track) ? 'check_circle' : 'add_circle_outline' }}</mat-icon>
+            </button>
+          </div>
+        }
+        @if (filteredTracks.length === 0) {
+          <div class="modal-empty">
+            <mat-icon>search_off</mat-icon>
+            <p>Aucun titre trouvé</p>
+          </div>
+        }
+      </div>
+
+    </div>
+  </div>
+}

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
@@ -6,26 +6,13 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
-import { Track } from '../../models/track';
-
-// Mock data en attendant le backend
-const MOCK_TRACKS: Track[] = [
-  {
-    id: 1, title: 'Get Lucky', duration: 248, genre: 'POP', mood: 'HAPPY',
-    artist: { id: 1, name: 'Daft Punk', bio: 'Duo de musique électronique français formé en 1993.' },
-    album: { id: 1, title: 'Random Access Memories', releaseYear: 2013, artist: { id: 1, name: 'Daft Punk' } }
-  },
-  {
-    id: 2, title: 'Bohemian Rhapsody', duration: 355, genre: 'ROCK', mood: 'HYPE',
-    artist: { id: 2, name: 'Queen', bio: 'Groupe de rock britannique formé à Londres en 1970.' },
-    album: { id: 2, title: 'A Night at the Opera', releaseYear: 1975, artist: { id: 2, name: 'Queen' } }
-  },
-  {
-    id: 3, title: 'So What', duration: 562, genre: 'JAZZ', mood: 'CHILL',
-    artist: { id: 3, name: 'Miles Davis', bio: 'Trompettiste et compositeur de jazz américain.' },
-    album: { id: 3, title: 'Kind of Blue', releaseYear: 1959, artist: { id: 3, name: 'Miles Davis' } }
-  },
-];
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { TrackService } from '../../services/track';
+import { TrackDto } from '../../models/track';
+import { ArtistService } from '../../services/artist';
+import { FavoriteService } from '../../services/favorite';
+import { PlayerService } from '../../services/player';
+import { forkJoin, Observable } from 'rxjs';
 
 @Component({
   selector: 'app-track-detail',
@@ -38,23 +25,44 @@ const MOCK_TRACKS: Track[] = [
     MatIconModule,
     MatChipsModule,
     MatDividerModule,
+    MatProgressSpinnerModule,
   ],
   templateUrl: './track-detail.html',
   styleUrl: './track-detail.scss'
 })
 export class TrackDetail implements OnInit {
-  track: Track | null = null;
+  track: TrackDto | null = null;
+  artistName = '';
+  artistBio = '';
   isLoading = true;
   isFavorite = false;
-
-  constructor(private route: ActivatedRoute) {}
+  private route = inject(ActivatedRoute);
+  private trackService = inject(TrackService);
+  private artistService = inject(ArtistService);
+  private favoriteService = inject(FavoriteService);
+  private playerService = inject(PlayerService);
 
   ngOnInit(): void {
     const id = Number(this.route.snapshot.paramMap.get('id'));
-    setTimeout(() => {
-      this.track = MOCK_TRACKS.find(t => t.id === id) || null;
-      this.isLoading = false;
-    }, 300);
+    forkJoin({
+      track: this.trackService.getById(id) as unknown as Observable<TrackDto>,
+      favorites: this.favoriteService.getAll()
+    }).subscribe({
+      next: ({ track, favorites }) => {
+        this.track = track;
+        this.isFavorite = favorites.some(f => f.trackId === track.id);
+        if (track.artistId) {
+          this.artistService.getById(track.artistId).subscribe(artist => {
+            this.artistName = artist.name;
+            this.artistBio = artist.bio ?? '';
+          });
+        }
+        this.isLoading = false;
+      },
+      error: () => {
+        this.isLoading = false;
+      }
+    });
   }
 
   formatDuration(seconds: number): string {
@@ -63,7 +71,22 @@ export class TrackDetail implements OnInit {
     return `${m}:${s.toString().padStart(2, '0')}`;
   }
 
+  playTrack(): void {
+    if (this.track) {
+      this.playerService.play(this.track.id, this.track.title, this.artistName);
+    }
+  }
+
   toggleFavorite(): void {
-    this.isFavorite = !this.isFavorite;
+    if (!this.track) return;
+    if (this.isFavorite) {
+      this.favoriteService.remove(this.track.id).subscribe(() => {
+        this.isFavorite = false;
+      });
+    } else {
+      this.favoriteService.add(this.track.id).subscribe(() => {
+        this.isFavorite = true;
+      });
+    }
   }
 }

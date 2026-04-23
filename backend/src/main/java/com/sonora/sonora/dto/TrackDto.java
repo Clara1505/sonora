@@ -3,6 +3,18 @@ package com.sonora.sonora.dto;
 import com.sonora.sonora.model.enums.Genre;
 import com.sonora.sonora.model.enums.Mood;
 
+/**
+ * Track data returned by API endpoints.
+ *
+ * @param id track identifier
+ * @param title track title
+ * @param duration track duration in seconds
+ * @param genre track genre
+ * @param mood track mood
+ * @param filePath stored file path
+ * @param albumId album identifier
+ * @param artistId artist identifier
+ */
 public record TrackDto(
         Long id,
         String title,

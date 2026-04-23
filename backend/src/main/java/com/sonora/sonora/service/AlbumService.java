@@ -13,17 +13,28 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+/** Service handling album CRUD operations. */
 @Service
 @RequiredArgsConstructor
 @Transactional
 public class AlbumService {
 
+    /** Repository for album persistence operations. */
     private final AlbumRepository albumRepository;
+
+    /** Repository for artist lookups. */
     private final ArtistRepository artistRepository;
 
-    public AlbumDto create(AlbumCreateUpdateDto dto) {
+    /**
+     * Creates a new album.
+     *
+     * @param dto album creation payload
+     * @return created album
+     */
+    public AlbumDto create(final AlbumCreateUpdateDto dto) {
         Artist artist = artistRepository.findById(dto.artistId())
-                .orElseThrow(() -> new ResourceNotFoundException("Artist not found: " + dto.artistId()));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Artist not found: " + dto.artistId()));
 
         Album album = Album.builder()
                 .title(dto.title())
@@ -35,6 +46,11 @@ public class AlbumService {
         return toDto(albumRepository.save(album));
     }
 
+    /**
+     * Returns all albums.
+     *
+     * @return list of albums
+     */
     @Transactional(readOnly = true)
     public List<AlbumDto> getAll() {
         return albumRepository.findAll().stream()
@@ -42,19 +58,35 @@ public class AlbumService {
                 .toList();
     }
 
+    /**
+     * Returns a single album by identifier.
+     *
+     * @param id album identifier
+     * @return matching album
+     */
     @Transactional(readOnly = true)
-    public AlbumDto getById(Long id) {
+    public AlbumDto getById(final Long id) {
         Album album = albumRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Album not found: " + id));
+            .orElseThrow(() -> new ResourceNotFoundException(
+                "Album not found: " + id));
         return toDto(album);
     }
 
-    public AlbumDto update(Long id, AlbumCreateUpdateDto dto) {
+    /**
+     * Updates an existing album.
+     *
+     * @param id album identifier
+     * @param dto update payload
+     * @return updated album
+     */
+    public AlbumDto update(final Long id, final AlbumCreateUpdateDto dto) {
         Album album = albumRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Album not found: " + id));
+            .orElseThrow(() -> new ResourceNotFoundException(
+                "Album not found: " + id));
 
         Artist artist = artistRepository.findById(dto.artistId())
-                .orElseThrow(() -> new ResourceNotFoundException("Artist not found: " + dto.artistId()));
+            .orElseThrow(() -> new ResourceNotFoundException(
+                "Artist not found: " + dto.artistId()));
 
         album.setTitle(dto.title());
         album.setReleaseYear(dto.releaseYear());
@@ -64,14 +96,25 @@ public class AlbumService {
         return toDto(albumRepository.save(album));
     }
 
-    public void delete(Long id) {
+    /**
+     * Deletes an album by identifier.
+     *
+     * @param id album identifier
+     */
+    public void delete(final Long id) {
         if (!albumRepository.existsById(id)) {
             throw new ResourceNotFoundException("Album not found: " + id);
         }
         albumRepository.deleteById(id);
     }
 
-    private AlbumDto toDto(Album album) {
+    /**
+     * Maps an album entity to DTO.
+     *
+     * @param album source entity
+     * @return mapped DTO
+     */
+    private AlbumDto toDto(final Album album) {
         return new AlbumDto(
                 album.getId(),
                 album.getTitle(),

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -26,11 +26,10 @@ import { MatDividerModule } from '@angular/material/divider';
 })
 export class Navbar {
   currentUser: User | null = null;
+  private authService = inject(AuthService);
+  private router = inject(Router);
 
-  constructor(
-    private authService: AuthService,
-    private router: Router
-  ) {
+  constructor() {
     this.authService.currentUser$.subscribe(user => {
       this.currentUser = user;
     });

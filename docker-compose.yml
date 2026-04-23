@@ -11,15 +11,12 @@ services:
       KAFKA_NODE_ID: 0
       KAFKA_PROCESS_ROLES: broker,controller
       KAFKA_CLUSTER_ID: "Mk3OEYBSD34fcwNTJENDM2Qk"
-
       KAFKA_LISTENERS: BROKER://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093,EXTERNAL://0.0.0.0:19092
       KAFKA_ADVERTISED_LISTENERS: BROKER://kafka-0:9092,EXTERNAL://localhost:19092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: BROKER:PLAINTEXT,CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: BROKER
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
-
       KAFKA_CONTROLLER_QUORUM_VOTERS: "0@kafka-0:9093,1@kafka-1:9093,2@kafka-2:9093"
-
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
@@ -27,7 +24,6 @@ services:
       KAFKA_MIN_INSYNC_REPLICAS: 2
       KAFKA_NUM_PARTITIONS: 3
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
-
       KAFKA_LOG_DIRS: /var/lib/kafka/data
     volumes:
       - kafka-0-data:/var/lib/kafka/data
@@ -52,15 +48,12 @@ services:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
       KAFKA_CLUSTER_ID: "Mk3OEYBSD34fcwNTJENDM2Qk"
-
       KAFKA_LISTENERS: BROKER://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093,EXTERNAL://0.0.0.0:19092
       KAFKA_ADVERTISED_LISTENERS: BROKER://kafka-1:9092,EXTERNAL://localhost:19093
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: BROKER:PLAINTEXT,CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: BROKER
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
-
       KAFKA_CONTROLLER_QUORUM_VOTERS: "0@kafka-0:9093,1@kafka-1:9093,2@kafka-2:9093"
-
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
@@ -68,7 +61,6 @@ services:
       KAFKA_MIN_INSYNC_REPLICAS: 2
       KAFKA_NUM_PARTITIONS: 3
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
-
       KAFKA_LOG_DIRS: /var/lib/kafka/data
     volumes:
       - kafka-1-data:/var/lib/kafka/data
@@ -92,15 +84,12 @@ services:
       KAFKA_NODE_ID: 2
       KAFKA_PROCESS_ROLES: broker,controller
       KAFKA_CLUSTER_ID: "Mk3OEYBSD34fcwNTJENDM2Qk"
-
       KAFKA_LISTENERS: BROKER://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093,EXTERNAL://0.0.0.0:19092
       KAFKA_ADVERTISED_LISTENERS: BROKER://kafka-2:9092,EXTERNAL://localhost:19094
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: BROKER:PLAINTEXT,CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: BROKER
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
-
       KAFKA_CONTROLLER_QUORUM_VOTERS: "0@kafka-0:9093,1@kafka-1:9093,2@kafka-2:9093"
-
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
@@ -108,7 +97,6 @@ services:
       KAFKA_MIN_INSYNC_REPLICAS: 2
       KAFKA_NUM_PARTITIONS: 3
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
-
       KAFKA_LOG_DIRS: /var/lib/kafka/data
     volumes:
       - kafka-2-data:/var/lib/kafka/data
@@ -189,6 +177,58 @@ services:
     networks:
       - sonora-net
 
+  # ── Backend Spring Boot ──────────────────────────────────────────────────────
+
+  sonora-backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: sonora-backend
+    hostname: sonora-backend
+    restart: unless-stopped
+    depends_on:
+      sonora-db:
+        condition: service_healthy
+      kafka-0:
+        condition: service_healthy
+      kafka-1:
+        condition: service_healthy
+      kafka-2:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://sonora-db:5432/sonora
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka-0:9092,kafka-1:9092,kafka-2:9092
+      JWT_SECRET: ${JWT_SECRET:-SuperSecretKeySonora2025MustBeAtLeast256BitsLong!!}
+      JWT_EXPIRATION_MS: 86400000
+      AUDIO_STORAGE_PATH: /app/audio
+      SPOTIFY_CLIENT_ID: ${SPOTIFY_CLIENT_ID}
+      SPOTIFY_CLIENT_SECRET: ${SPOTIFY_CLIENT_SECRET}
+    volumes:
+      - audio-data:/app/audio
+    ports:
+      - "8080:8080"
+    networks:
+      - sonora-net
+
+  # ── Frontend Angular ─────────────────────────────────────────────────────────
+
+  sonora-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        SPOTIFY_CLIENT_ID: ${SPOTIFY_CLIENT_ID}
+        SPOTIFY_CLIENT_SECRET: ${SPOTIFY_CLIENT_SECRET}
+    container_name: sonora-frontend
+    hostname: sonora-frontend
+    restart: unless-stopped
+    ports:
+      - "4200:80"
+    networks:
+      - sonora-net
+
 # ── Named volumes ────────────────────────────────────────────────────────────
 
 volumes:
@@ -206,6 +246,9 @@ volumes:
     driver: local
   pgadmin-data:
     name: sonora-pgadmin-data
+    driver: local
+  audio-data:
+    name: sonora-audio-data
     driver: local
 
 # ── Network ──────────────────────────────────────────────────────────────────

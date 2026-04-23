@@ -1,5 +1,9 @@
 package com.sonora.sonora.model.enums;
 
+/** Playlist generation modes. */
 public enum PlaylistType {
-    MANUAL, SMART
+    /** User-managed playlist. */
+    MANUAL,
+    /** Automatically managed playlist. */
+    SMART
 }

@@ -1,7 +1,7 @@
 name: CI/CD Sonora
 
 permissions:
-  contents: read
+  contents: write
   packages: write
 
 on:
@@ -69,14 +69,26 @@ jobs:
           name: jacoco-report
           path: backend/target/site/jacoco/
 
-      - name: Vérifier couverture >= 70%
+      - name: Vérifier couverture >= 80%
         run: |
           COVERAGE=$(grep -Po 'Total.*?([0-9]+)%' backend/target/site/jacoco/index.html | tail -1 | grep -Po '[0-9]+')
           echo "Couverture : $COVERAGE%"
-          if [ "$COVERAGE" -lt 70 ]; then
-            echo "Couverture insuffisante ($COVERAGE% < 70%)"
+          if [ "$COVERAGE" -lt 80 ]; then
+            echo "Couverture insuffisante ($COVERAGE% < 80%)"
             exit 1
           fi
+
+      # ── Analyse statique backend (Checkstyle) ──────────────────
+      - name: Analyse statique Checkstyle
+        run: mvn checkstyle:check --no-transfer-progress
+        working-directory: ./backend
+
+      - name: Publier rapport Checkstyle
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: checkstyle-report
+          path: backend/target/checkstyle-result.xml
 
   # ─── Étape 2 : Frontend ──────────────────────────────────────
   frontend:
@@ -90,10 +102,29 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Générer environment.ts
+        run: |
+          cat > src/environments/environment.ts << EOF
+          export const environment = {
+            production: false,
+            apiUrl: 'http://localhost:8080',
+            spotify: {
+              clientId: '${{ secrets.SPOTIFY_CLIENT_ID }}',
+              clientSecret: '${{ secrets.SPOTIFY_CLIENT_SECRET }}'
+            }
+          };
+          EOF
+        working-directory: ./frontend
+
       - name: Install & Build Angular
         run: |
           npm ci
           npm run build -- --configuration production
+        working-directory: ./frontend
+
+      # ── Analyse statique frontend (ESLint) ─────────────────────
+      - name: Analyse statique ESLint
+        run: npm run lint
         working-directory: ./frontend
 
   # ─── Étape 3 : Docker (push seulement) ──────────────────────
@@ -132,9 +163,42 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Tag image avec version Git
+      # ── Processus de release automatisé ───────────────────────
+      - name: Déterminer la version
+        id: version
         run: |
           TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "1.0.0")
+          echo "TAG=$TAG" >> "$GITHUB_OUTPUT"
           echo "Déploiement version $TAG"
-          # Ajoute ici ta commande de déploiement (SSH, kubectl, etc.)
+
+      - name: Générer les release notes
+        id: release_notes
+        run: |
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          if [ -n "$PREVIOUS_TAG" ]; then
+            NOTES=$(git log "$PREVIOUS_TAG"..HEAD --pretty=format:"- %s (%h)" --no-merges)
+          else
+            NOTES=$(git log --pretty=format:"- %s (%h)" --no-merges -20)
+          fi
+          echo "NOTES<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$NOTES" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+      - name: Créer la GitHub Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.version.outputs.TAG }}
+          release_name: "Sonora ${{ steps.version.outputs.TAG }}"
+          body: |
+            ## Changements
+            ${{ steps.release_notes.outputs.NOTES }}
+
+            ## Image Docker
+            `ghcr.io/${{ github.repository }}/sonora-backend:${{ steps.version.outputs.TAG }}`
+          draft: false
+          prerelease: false

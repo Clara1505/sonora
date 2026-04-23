@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -10,9 +10,11 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { Genre, Mood } from '../../models/track';
+import { Genre, Mood, TrackDto } from '../../models/track';
 import { TrackService } from '../../services/track';
 import { ArtistService } from '../../services/artist';
+import { PlayerService } from '../../services/player';
+import { FavoriteService } from '../../services/favorite';
 import { forkJoin } from 'rxjs';
 
 @Component({
@@ -35,9 +37,10 @@ import { forkJoin } from 'rxjs';
   styleUrl: './catalogue.scss'
 })
 export class Catalogue implements OnInit {
-  tracks: any[] = [];
-  filteredTracks: any[] = [];
-  artistMap: Map<number, string> = new Map();
+  tracks: TrackDto[] = [];
+  filteredTracks: TrackDto[] = [];
+  artistMap = new Map<number, string>();
+  favoriteIds = new Set<number>();
   isLoading = false;
 
   searchQuery = '';
@@ -47,13 +50,14 @@ export class Catalogue implements OnInit {
   genres: Genre[] = ['POP', 'ROCK', 'JAZZ', 'CLASSICAL', 'ELECTRONIC', 'HIP_HOP', 'REGGAE', 'METAL', 'RNB', 'OTHER'];
   moods: Mood[] = ['HAPPY', 'SAD', 'CHILL', 'FOCUS', 'HYPE', 'ROMANTIC', 'WORKOUT', 'ANGRY'];
 
-  constructor(
-    private trackService: TrackService,
-    private artistService: ArtistService
-  ) {}
+  private trackService = inject(TrackService);
+  private artistService = inject(ArtistService);
+  private playerService = inject(PlayerService);
+  private favoriteService = inject(FavoriteService);
 
   ngOnInit(): void {
     this.loadTracks();
+    this.loadFavorites();
   }
 
   loadTracks(): void {
@@ -64,8 +68,8 @@ export class Catalogue implements OnInit {
     }).subscribe({
       next: ({ artists, tracks }) => {
         artists.forEach(a => this.artistMap.set(a.id, a.name));
-        this.tracks = tracks;
-        this.filteredTracks = tracks;
+        this.tracks = tracks as unknown as TrackDto[];
+        this.filteredTracks = tracks as unknown as TrackDto[];
         this.isLoading = false;
       },
       error: () => {
@@ -74,8 +78,42 @@ export class Catalogue implements OnInit {
     });
   }
 
+  loadFavorites(): void {
+    this.favoriteService.getAll().subscribe({
+      next: (favorites) => {
+        favorites.forEach(f => this.favoriteIds.add(f.trackId));
+      },
+    });
+  }
+
+  isFavorite(trackId: number): boolean {
+    return this.favoriteIds.has(trackId);
+  }
+
+  toggleFavorite(track: TrackDto): void {
+    if (this.isFavorite(track.id)) {
+      this.favoriteService.remove(track.id).subscribe(() => {
+        this.favoriteIds.delete(track.id);
+      });
+    } else {
+      this.favoriteService.add(track.id).subscribe(() => {
+        this.favoriteIds.add(track.id);
+      });
+    }
+  }
+
   getArtistName(artistId: number): string {
     return this.artistMap.get(artistId) || 'Artiste inconnu';
+  }
+
+  playTrack(track: TrackDto): void {
+    const queue = this.filteredTracks.map(t => ({
+      id: t.id,
+      title: t.title,
+      artist: this.getArtistName(t.artistId)
+    }));
+    const index = queue.findIndex(t => t.id === track.id);
+    this.playerService.setQueue(queue, index >= 0 ? index : 0);
   }
 
   applyFilters(): void {
@@ -84,10 +122,8 @@ export class Catalogue implements OnInit {
       const matchesSearch = !this.searchQuery ||
         track.title.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
         artistName.toLowerCase().includes(this.searchQuery.toLowerCase());
-
       const matchesGenre = !this.selectedGenre || track.genre === this.selectedGenre;
       const matchesMood = !this.selectedMood || track.mood === this.selectedMood;
-
       return matchesSearch && matchesGenre && matchesMood;
     });
   }
