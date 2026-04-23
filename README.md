@@ -67,6 +67,13 @@ Les variables **obligatoires** (sans valeur par défaut) sont :
 | `DB_PASSWORD` | Mot de passe PostgreSQL |
 | `JWT_SECRET` | Clé de signature JWT (min. 32 caractères) |
 
+Les variables **optionnelles** (valeur par défaut utilisée si absentes) sont :
+
+| Variable | Défaut | Description |
+|---|---|---|
+| `ADMIN_EMAIL` | `admin@sonora.com` | Email du compte administrateur créé au démarrage |
+| `ADMIN_PASSWORD` | `Admin1234!` | Mot de passe du compte administrateur |
+
 Pour générer un secret JWT sécurisé :
 \`\`\`bash
 openssl rand -base64 32
@@ -84,24 +91,64 @@ openssl rand -base64 32
 
 #### Résumé des routes API
 
-| Méthode | Route | Auth requise | Description |
+**Authentification**
+
+| Méthode | Route | Auth | Description |
 |---|---|---|---|
-| POST | `/api/auth/register` | Non | Créer un compte |
+| POST | `/api/auth/register` | Non | Créer un compte (rôle USER) |
 | POST | `/api/auth/login` | Non | Obtenir un token JWT |
-| GET | `/api/tracks` | Oui | Lister les pistes |
-| POST | `/api/tracks` | Oui (ADMIN) | Créer une piste |
+
+**Catalogue**
+
+| Méthode | Route | Auth | Description |
+|---|---|---|---|
+| GET | `/api/tracks` | Oui | Lister toutes les pistes |
+| POST | `/api/tracks` | ADMIN | Créer une piste (métadonnées) |
 | GET | `/api/tracks/{id}` | Oui | Détail d'une piste |
+| PUT | `/api/tracks/{id}` | ADMIN | Modifier une piste |
+| DELETE | `/api/tracks/{id}` | Oui (propriétaire ou ADMIN) | Supprimer une piste |
+| POST | `/api/tracks/upload` | Oui | Uploader un fichier audio (MP3/WAV, max 100 Mo) |
+| GET | `/api/tracks/{id}/stream` | Non | Streamer une piste (support Range) |
+| POST | `/api/tracks/{id}/played` | Oui | Enregistrer une écoute |
 | GET | `/api/albums` | Oui | Lister les albums |
 | GET | `/api/artists` | Oui | Lister les artistes |
+
+**Playlists & Favoris**
+
+| Méthode | Route | Auth | Description |
+|---|---|---|---|
 | GET | `/api/playlists` | Oui | Mes playlists |
 | POST | `/api/playlists` | Oui | Créer une playlist |
+| GET | `/api/playlists/{id}` | Oui | Détail d'une playlist |
+| DELETE | `/api/playlists/{id}` | Oui (propriétaire ou ADMIN) | Supprimer une playlist |
+| POST | `/api/playlists/{id}/tracks/{trackId}` | Oui | Ajouter une piste à une playlist |
+| DELETE | `/api/playlists/{id}/tracks/{trackId}` | Oui | Retirer une piste d'une playlist |
+| GET | `/api/playlists/all` | ADMIN | Toutes les playlists (tous utilisateurs) |
 | GET | `/api/favorites` | Oui | Mes favoris |
-| POST | `/api/favorites` | Oui | Ajouter aux favoris |
+| POST | `/api/favorites/{trackId}` | Oui | Ajouter aux favoris |
+| DELETE | `/api/favorites/{trackId}` | Oui | Retirer des favoris |
+
+**Statistiques**
+
+| Méthode | Route | Auth | Description |
+|---|---|---|---|
 | GET | `/api/stats/me` | Oui | Mes statistiques d'écoute |
-| GET | `/api/streaming/{id}` | Oui | Streamer une piste (Range) |
-| POST | `/api/streaming/played` | Oui | Enregistrer une écoute |
-| POST | `/api/upload` | Oui (ADMIN) | Upload d'un fichier audio |
+| GET | `/api/stats/tracks/{id}` | Oui | Statistiques d'une piste |
+
+**Administration (ADMIN uniquement)**
+
+| Méthode | Route | Auth | Description |
+|---|---|---|---|
+| GET | `/api/admin/users` | ADMIN | Lister tous les utilisateurs (rôle USER) |
+| DELETE | `/api/admin/users/{id}` | ADMIN | Supprimer un utilisateur |
+| GET | `/api/admin/stats` | ADMIN | Statistiques globales (users, pistes, playlists) |
+
+**Divers**
+
+| Méthode | Route | Auth | Description |
+|---|---|---|---|
 | GET | `/api/spotify/search` | Oui | Recherche Spotify |
+| GET | `/actuator/health` | Non | Santé du service |
 
 > La documentation complète et interactive est disponible via Swagger UI quand `SWAGGER_ENABLED=true`.
 
@@ -138,14 +185,66 @@ Même droits que l'Auditeur, plus :
 - Accès à la page de gestion de son catalogue
 - Upload de fichiers audio (MP3 / WAV, max 100 Mo)
 
-> Note : le passage en rôle ARTISTE est actuellement effectué par un administrateur.
-
 ### Profil Administrateur
 
-Tous les droits, plus :
-- Créer, modifier, supprimer des pistes, albums et artistes
-- Gérer les comptes utilisateurs
-- Consulter les statistiques globales de la plateforme
+Compte avec le rôle `ADMIN`. **Un administrateur est créé automatiquement au premier démarrage** (voir [Compte administrateur](#compte-administrateur)).
+
+Fonctionnalités supplémentaires par rapport à l'Auditeur :
+
+| Fonctionnalité | Détail |
+|---|---|
+| **Catalogue — suppression** | Bouton "Supprimer" visible sur chaque piste du catalogue |
+| **Playlists — vue globale** | L'onglet Playlists affiche toutes les playlists de tous les utilisateurs |
+| **Playlists — suppression** | Peut supprimer n'importe quelle playlist, même celle d'un autre utilisateur |
+| **Utilisateurs** | L'onglet "Favoris" est remplacé par "Utilisateurs" : liste tous les comptes USER avec leur date d'inscription et un bouton de suppression |
+| **Profil — stats globales** | Le profil affiche un bloc "Statistiques de l'application" : nombre d'utilisateurs, de pistes et de playlists, avec un lien vers la page de gestion |
+
+---
+
+### Compte administrateur
+
+#### Identifiants par défaut
+
+Un compte administrateur est **automatiquement créé au démarrage du backend** (`DataInitializer`) s'il n'existe pas déjà :
+
+| Champ | Valeur par défaut |
+|---|---|
+| Email | `admin@sonora.com` |
+| Mot de passe | `Admin1234!` |
+
+> Ces valeurs sont surchargeable via les variables d'environnement `ADMIN_EMAIL` et `ADMIN_PASSWORD` dans `docker-compose.yml` ou `.env`.
+
+#### Changer les identifiants admin
+
+**Via Docker Compose (recommandé) :**
+
+```bash
+# Dans .env ou en ligne de commande
+ADMIN_EMAIL=mon-admin@exemple.com ADMIN_PASSWORD=MonMdpSécurisé! docker compose up -d
+```
+
+**Via le script fourni :**
+
+```bash
+# Crée (ou recrée) l'admin avec les credentials donnés et redémarre le backend
+./scripts/register_admin.sh mon-admin@exemple.com MonMdpSécurisé!
+```
+
+Le script [`scripts/register_admin.sh`](scripts/register_admin.sh) exporte les variables et redémarre le conteneur `sonora-backend` via Docker Compose. Si Docker Compose n'est pas disponible, il affiche la commande Maven équivalente.
+
+#### Créer un second administrateur
+
+La création d'un deuxième admin se fait directement via `psql` :
+
+```bash
+# Obtenir le hash BCrypt du mot de passe (Python 3 requis)
+HASH=$(python3 -c "import bcrypt; print(bcrypt.hashpw(b'NouveauMdp!', bcrypt.gensalt(10)).decode())")
+
+# Insérer dans la base
+docker compose exec sonora-db psql -U postgres -d sonora -c \
+  "INSERT INTO users (email, password_hash, role, created_at) \
+   VALUES ('autre-admin@exemple.com', '$HASH', 'ADMIN', NOW());"
+```
 
 ---
 
@@ -166,7 +265,8 @@ sonora/
 │   │   │   ├── model/        # Entités JPA + enums métier
 │   │   │   ├── repository/   # Interfaces Spring Data JPA
 │   │   │   ├── security/     # JWT, filtres, SecurityConfig
-│   │   │   └── service/      # Logique métier
+│   │   │   ├── service/      # Logique métier
+│   │   │   └── DataInitializer       # Création du compte admin au démarrage
 │   │   └── resources/
 │   │       ├── application.properties        # Config production (variables env)
 │   │       └── application-dev.properties    # Config développement local
@@ -174,12 +274,12 @@ sonora/
 │
 ├── frontend/         # SPA Angular 21
 │   └── src/app/
-│       ├── guards/       # Auth guard (routes protégées)
+│       ├── guards/       # authGuard (routes protégées) · adminGuard (routes ADMIN)
 │       ├── interceptors/ # Injection automatique du token JWT
 │       ├── layout/       # Composants persistants (navbar, player bar)
 │       ├── models/       # Interfaces TypeScript
 │       ├── pages/        # Composants de page (routing)
-│       └── services/     # Appels API
+│       └── services/     # Appels API (dont AdminService)
 │
 ├── docker-compose.yml  # Infrastructure complète
 ├── .env.example        # Modèle des variables d'environnement
