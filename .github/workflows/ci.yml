@@ -128,7 +128,7 @@ jobs:
 
       # ── Tests unitaires Angular (Vitest) ───────────────────────
       - name: Tests unitaires Angular
-        run: npm test -- --run
+        run: npm test -- --watch=false
         working-directory: ./frontend
 
       - name: Publier rapport de tests frontend
