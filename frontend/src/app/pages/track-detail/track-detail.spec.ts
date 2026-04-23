@@ -1,5 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
+import { provideRouter } from '@angular/router';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { TrackDetail } from './track-detail';
 
 describe('TrackDetail', () => {
@@ -9,6 +11,11 @@ describe('TrackDetail', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [TrackDetail],
+      providers: [
+        provideRouter([]),
+        provideHttpClient(),
+        provideHttpClientTesting(),
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(TrackDetail);
