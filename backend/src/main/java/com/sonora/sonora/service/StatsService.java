@@ -82,9 +82,15 @@ public class StatsService {
                 .limit(TOP_TRACK_LIMIT)
                 .toList();
 
+        long totalListeningTime = history.stream()
+                .mapToLong(h -> h.getDurationListened() != null
+                        ? h.getDurationListened() : 0)
+                .sum();
+
         return UserStatsResponse.builder()
                 .userEmail(userEmail)
                 .totalPlays(history.size())
+                .totalListeningTime(totalListeningTime)
                 .topTracks(topTracks)
                 .build();
     }

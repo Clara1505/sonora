@@ -295,6 +295,7 @@
       display: flex;
       align-items: center;
       gap: 8px;
+      color: white;
       mat-icon { color: #7c4dff; }
     }
   }
@@ -312,7 +313,29 @@
       flex: 1;
     }
 
-    mat-form-field { margin: 0; }
+    mat-form-field { 
+      margin: 0; 
+
+      ::ng-deep .mat-mdc-text-field-wrapper {
+        background: #2a2a3e !important;
+      }
+
+      ::ng-deep .mdc-text-field--outlined .mdc-notched-outline__leading,
+      ::ng-deep .mdc-text-field--outlined .mdc-notched-outline__notch,
+      ::ng-deep .mdc-text-field--outlined .mdc-notched-outline__trailing {
+        border-color: #555 !important;
+      }
+
+      ::ng-deep .mat-mdc-form-field-label,
+      ::ng-deep .mdc-floating-label {
+        color: #ccc !important;
+      }
+
+      ::ng-deep .mat-mdc-input-element,
+      ::ng-deep .mat-mdc-select-value-text {
+        color: white !important;
+      }
+    }
   }
 
   .modal-track-count {
@@ -373,6 +396,14 @@
       }
 
       .track-duration { font-size: 0.8rem; color: #666; min-width: 36px; text-align: right; }
+
+      button[mat-icon-button] {
+        &:disabled {
+          ::ng-deep .mat-icon {
+            color: #4db6ac !important;
+          }
+        }
+      }
     }
 
     .modal-empty {
