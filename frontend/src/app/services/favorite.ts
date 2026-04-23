@@ -30,7 +30,7 @@ export class FavoriteService {
       next: (favorites) => {
         this.favoriteIdsSubject.next(new Set(favorites.map(f => f.trackId)));
       },
-      error: () => {}
+      error: () => { /* noop */ }
     });
   }
 

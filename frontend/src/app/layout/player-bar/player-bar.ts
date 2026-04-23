@@ -60,8 +60,8 @@ export class PlayerBar implements OnInit {
   get hasPrevious(): boolean { return this.playerService.hasPrevious(); }
   toggleMute(): void { this.playerService.toggleMute(); }
 
-  onSeek(event: any): void { this.playerService.seek(event.target.value); }
-  onVolumeChange(event: any): void { this.playerService.setVolume(event.target.value); }
+  onSeek(event: Event): void { this.playerService.seek(+(event.target as HTMLInputElement).value); }
+  onVolumeChange(event: Event): void { this.playerService.setVolume(+(event.target as HTMLInputElement).value); }
 
   formatTime(seconds: number): string {
     if (!seconds || isNaN(seconds)) return '0:00';
