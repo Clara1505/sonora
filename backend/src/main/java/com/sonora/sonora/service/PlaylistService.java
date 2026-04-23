@@ -84,6 +84,11 @@ public class PlaylistService {
                 .toList();
     }
 
+    /**
+     * Returns all playlists in the system (admin use).
+     *
+     * @return list of all playlist DTOs
+     */
     @Transactional(readOnly = true)
     public List<PlaylistDto> getAllPlaylists() {
         return playlistRepository.findAll().stream()
@@ -115,9 +120,15 @@ public class PlaylistService {
         playlistRepository.delete(playlist);
     }
 
-    public void adminDelete(Long id) {
+    /**
+     * Deletes a playlist without ownership checks (admin only).
+     *
+     * @param id playlist identifier
+     */
+    public void adminDelete(final Long id) {
         Playlist playlist = playlistRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Playlist not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Playlist not found: " + id));
         playlistRepository.delete(playlist);
     }
 
@@ -129,11 +140,12 @@ public class PlaylistService {
      * @param userEmail owner email
      * @return updated playlist
      */
-    public PlaylistDto addTrack(Long playlistId, Long trackId, String userEmail) {
+    public PlaylistDto addTrack(final Long playlistId, final Long trackId,
+                                final String userEmail) {
         Playlist playlist = findOwnedPlaylist(playlistId, userEmail);
         Track track = trackRepository.findById(trackId)
-            .orElseThrow(() -> new ResourceNotFoundException(
-                "Track not found: " + trackId));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Track not found: " + trackId));
         if (!playlist.getTracks().contains(track)) {
             playlist.getTracks().add(track);
         }

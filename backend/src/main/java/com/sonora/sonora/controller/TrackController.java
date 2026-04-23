@@ -39,6 +39,7 @@ public class TrackController {
      * Creates a track.
      *
      * @param dto track payload
+     * @param email authenticated user email
      * @return created track
      */
     @PostMapping
@@ -47,7 +48,7 @@ public class TrackController {
     @Operation(summary = "Create a track")
     public TrackDto create(
             @Valid @RequestBody final TrackCreateUpdateDto dto,
-            @AuthenticationPrincipal String email) {
+            @AuthenticationPrincipal final String email) {
         return trackService.create(dto, email);
     }
 
@@ -93,16 +94,22 @@ public class TrackController {
      * Deletes a track.
      *
      * @param id track identifier
+     * @param email authenticated user email
+     * @param authentication authentication token (may be null)
      */
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(summary = "Delete a track")
-    public void delete(
+        public void delete(
             @PathVariable final Long id,
-            @AuthenticationPrincipal String email,
-            Authentication authentication) {
-        boolean isAdmin = authentication != null && authentication.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+            @AuthenticationPrincipal final String email,
+            final Authentication authentication) {
+        boolean isAdmin = false;
+        if (authentication != null) {
+            isAdmin = authentication.getAuthorities()
+                    .stream()
+                    .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        }
         trackService.delete(id, email, isAdmin);
-    }
+        }
 }

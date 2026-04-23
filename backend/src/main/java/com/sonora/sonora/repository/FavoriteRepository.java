@@ -37,5 +37,10 @@ public interface FavoriteRepository extends JpaRepository<Favorite, Long> {
      */
     boolean existsByUserEmailAndTrackId(String email,
                                         Long trackId);
+    /**
+     * Deletes favorites referring to the given track identifier.
+     *
+     * @param trackId track identifier to remove from favorites
+     */
     void deleteByTrackId(Long trackId);
 }

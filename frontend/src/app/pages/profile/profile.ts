@@ -35,13 +35,11 @@ export class Profile implements OnInit {
   adminStats: AdminStats | null = null;
   isLoading = false;
 
-  constructor(
-    private authService: AuthService,
-    private statsService: StatsService,
-    private adminService: AdminService,
-    private playerService: PlayerService,
-    private router: Router
-  ) {}
+  private authService = inject(AuthService);
+  private statsService = inject(StatsService);
+  private adminService = inject(AdminService);
+  private playerService = inject(PlayerService);
+  private router = inject(Router);
 
   ngOnInit(): void {
     this.authService.currentUser$.subscribe(user => {
@@ -68,7 +66,7 @@ export class Profile implements OnInit {
     if (this.authService.isAdmin()) {
       this.adminService.getStats().subscribe({
         next: (stats) => { this.adminStats = stats; },
-        error: () => {}
+        error: () => { console.error('Failed to load admin stats'); }
       });
     }
   }

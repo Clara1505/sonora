@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
@@ -28,7 +28,7 @@ export class AdminUsers implements OnInit {
   isLoading = false;
   displayedColumns = ['id', 'email', 'role', 'createdAt', 'actions'];
 
-  constructor(private adminService: AdminService) {}
+  private adminService = inject(AdminService);
 
   ngOnInit(): void {
     this.isLoading = true;

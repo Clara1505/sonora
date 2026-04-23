@@ -55,14 +55,12 @@ export class Catalogue implements OnInit {
   genres: Genre[] = ['POP', 'ROCK', 'JAZZ', 'CLASSICAL', 'ELECTRONIC', 'HIP_HOP', 'REGGAE', 'METAL', 'RNB', 'OTHER'];
   moods: Mood[] = ['HAPPY', 'SAD', 'CHILL', 'FOCUS', 'HYPE', 'ROMANTIC', 'WORKOUT', 'ANGRY'];
 
-  constructor(
-    private trackService: TrackService,
-    private artistService: ArtistService,
-    private playerService: PlayerService,
-    private favoriteService: FavoriteService,
-    private authService: AuthService,
-    private snackBar: MatSnackBar
-  ) {}
+  private trackService = inject(TrackService);
+  private artistService = inject(ArtistService);
+  private playerService = inject(PlayerService);
+  private favoriteService = inject(FavoriteService);
+  private authService = inject(AuthService);
+  private snackBar = inject(MatSnackBar);
 
   ngOnInit(): void {
     this.isAdmin = this.authService.isAdmin();
@@ -135,11 +133,11 @@ export class Catalogue implements OnInit {
     this.filteredTracks = this.tracks;
   }
 
-  canDelete(track: any): boolean {
+  canDelete(track: TrackDto): boolean {
     return this.isAdmin || (track.createdByEmail != null && track.createdByEmail === this.currentUserEmail);
   }
 
-  deleteTrack(track: any): void {
+  deleteTrack(track: TrackDto): void {
     if (!confirm(`Supprimer "${track.title}" définitivement ?`)) return;
     this.trackService.delete(track.id).subscribe({
       next: () => {

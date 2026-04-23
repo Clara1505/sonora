@@ -66,6 +66,7 @@ public class Track {
     @JoinColumn(name = "artist_id", nullable = false)
     private Artist artist;
 
+    /** User who created the track (may be null for imported content). */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by_id")
     private User createdBy;

@@ -25,7 +25,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     /** JWT service used to validate and parse tokens. */
     private final JwtService jwtService;
-    private static final Logger log = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
+
+        /** Logger for JwtAuthenticationFilter. */
+        private static final Logger LOG =
+            LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 
     /**
      * Creates a new JWT authentication filter.
@@ -64,18 +67,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (jwtService.isTokenValid(token)) {
             String email = jwtService.extractEmail(token);
             String role = jwtService.extractRole(token);
-            log.info("JWT valid — email={}, role={}", email, role);
+            LOG.info("JWT valid — email={}, role={}", email, role);
 
-            UsernamePasswordAuthenticationToken authentication =
-                new UsernamePasswordAuthenticationToken(
-                    email,
-                    null,
-                    List.of(new SimpleGrantedAuthority("ROLE_" + role))
-                );
+                SimpleGrantedAuthority authority =
+                    new SimpleGrantedAuthority("ROLE_" + role);
+                List<SimpleGrantedAuthority> authorities =
+                    List.of(authority);
 
-                SecurityContextHolder
-                    .getContext()
-                    .setAuthentication(authentication);
+                UsernamePasswordAuthenticationToken authentication =
+                    new UsernamePasswordAuthenticationToken(
+                        email,
+                        null,
+                        authorities
+                    );
+
+                var ctx = SecurityContextHolder.getContext();
+                ctx.setAuthentication(authentication);
         }
 
         filterChain.doFilter(request, response);

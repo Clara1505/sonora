@@ -12,6 +12,7 @@ import com.sonora.sonora.repository.ArtistRepository;
 import com.sonora.sonora.repository.TrackRepository;
 import com.sonora.sonora.repository.UserRepository;
 import com.sonora.sonora.repository.PlaylistRepository;
+import com.sonora.sonora.repository.FavoriteRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -31,20 +32,27 @@ public class TrackService {
     private final ArtistRepository artistRepository;
     /** Repository for album lookups. */
     private final AlbumRepository albumRepository;
-    private final com.sonora.sonora.repository.FavoriteRepository favoriteRepository;
+    /** Repository for favorite links to tracks. */
+    private final FavoriteRepository favoriteRepository;
+
+    /** Repository for user lookups. */
     private final UserRepository userRepository;
+
+    /** Repository for playlist operations. */
     private final PlaylistRepository playlistRepository;
 
     /**
      * Creates a new track.
      *
-     * @param dto track payload
-     * @return created track
+      * @param dto track payload
+      * @param creatorEmail email of the user creating the track
+      * @return created track
      */
-    public TrackDto create(final TrackCreateUpdateDto dto, String creatorEmail) {
+    public TrackDto create(final TrackCreateUpdateDto dto,
+                           final String creatorEmail) {
         Artist artist = artistRepository.findById(dto.artistId())
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Artist not found: " + dto.artistId()));
+            .orElseThrow(() -> new ResourceNotFoundException(
+                "Artist not found: " + dto.artistId()));
 
         Album album = resolveAlbum(dto.albumId());
 
@@ -122,24 +130,31 @@ public class TrackService {
     /**
      * Deletes a track by identifier.
      *
-     * @param id track identifier
+        * @param id track identifier
+        * @param userEmail email of the user requesting deletion
+        * @param isAdmin whether the requester has admin privileges
      */
-    public void delete(final Long id, String userEmail, boolean isAdmin) {
+    public void delete(final Long id, final String userEmail,
+                       final boolean isAdmin) {
         Track track = trackRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Track not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Track not found: " + id));
 
-        boolean isOwner = track.getCreatedBy() != null
-                && track.getCreatedBy().getEmail().equals(userEmail);
+        boolean isOwner = false;
+        if (track.getCreatedBy() != null) {
+            isOwner = track.getCreatedBy().getEmail().equals(userEmail);
+        }
 
         if (!isAdmin && !isOwner) {
-            throw new AccessDeniedException("Vous n'êtes pas autorisé à supprimer ce titre");
+            throw new AccessDeniedException(
+                    "Vous n'êtes pas autorisé à supprimer ce titre");
         }
 
         // Supprime d'abord les favoris référencant ce track pour éviter
         // les violations de contrainte de clé étrangère.
         favoriteRepository.deleteByTrackId(id);
 
-        // Supprime également les références dans les playlists (table de jointure)
+        // Supprime les références dans les playlists (jointure)
         // pour éviter la violation de contrainte sur playlist_tracks.
         playlistRepository.deleteTrackFromPlaylists(id);
 
@@ -168,16 +183,26 @@ public class TrackService {
      * @return mapped DTO
      */
     private TrackDto toDto(final Track track) {
+        Long albumId = track.getAlbum() != null
+            ? track.getAlbum().getId()
+            : null;
+        Long artistId = track.getArtist() != null
+            ? track.getArtist().getId()
+            : null;
+        String createdByEmail = track.getCreatedBy() != null
+            ? track.getCreatedBy().getEmail()
+            : null;
+
         return new TrackDto(
-                track.getId(),
-                track.getTitle(),
-                track.getDuration(),
-                track.getGenre(),
-                track.getMood(),
-                track.getFilePath(),
-                track.getAlbum() != null ? track.getAlbum().getId() : null,
-                track.getArtist().getId(),
-                track.getCreatedBy() != null ? track.getCreatedBy().getEmail() : null
+            track.getId(),
+            track.getTitle(),
+            track.getDuration(),
+            track.getGenre(),
+            track.getMood(),
+            track.getFilePath(),
+            albumId,
+            artistId,
+            createdByEmail
         );
     }
 }

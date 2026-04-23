@@ -62,6 +62,11 @@ public class PlaylistController {
         return playlistService.getUserPlaylists(email);
     }
 
+    /**
+     * Lists all playlists (admin only).
+     *
+     * @return all playlists
+     */
     @GetMapping("/all")
     @PreAuthorize("hasRole('ADMIN')")
     public List<PlaylistDto> listAll() {
@@ -83,19 +88,26 @@ public class PlaylistController {
     }
 
     /**
-     * Deletes a playlist.
+     * Deletes a playlist. If the authenticated user is an admin the playlist
+     * is removed globally, otherwise only the owner's playlist is deleted.
      *
      * @param id playlist identifier
      * @param email authenticated user email
+     * @param authentication authentication token (may be null)
      */
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(summary = "Delete a playlist")
-    public void delete(@PathVariable final Long id,
-                       @AuthenticationPrincipal final String email,
-            Authentication authentication) {
-        boolean isAdmin = authentication != null && authentication.getAuthorities().stream()
+    public void delete(
+            @PathVariable final Long id,
+            @AuthenticationPrincipal final String email,
+            final Authentication authentication) {
+        boolean isAdmin = false;
+        if (authentication != null) {
+            isAdmin = authentication.getAuthorities()
+                .stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        }
         if (isAdmin) {
             playlistService.adminDelete(id);
         } else {

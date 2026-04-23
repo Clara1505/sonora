@@ -55,7 +55,8 @@ public class StreamingService {
     /** Repository for artist lookups. */
     private final ArtistRepository artistRepository;
 
-    private final UserRepository     userRepository;
+    /** Repository for user lookups. */
+    private final UserRepository userRepository;
 
     /** Producer for track import events. */
     private final TrackEventProducer trackEventProducer;
@@ -101,7 +102,8 @@ public class StreamingService {
             }
         }
 
-        User uploader = userRepository.findByEmail(uploadedByEmail).orElse(null);
+        User uploader = userRepository
+            .findByEmail(uploadedByEmail).orElse(null);
 
         Track track = Track.builder()
                 .title(request.getTitle())
@@ -216,16 +218,24 @@ public class StreamingService {
      * @return mapped DTO
      */
     private TrackDto toDto(final Track track) {
+        Long albumId = track.getAlbum() != null
+            ? track.getAlbum().getId() : null;
+        Long artistId = track.getArtist() != null
+            ? track.getArtist().getId() : null;
+        String createdByEmail = track.getCreatedBy() != null
+            ? track.getCreatedBy().getEmail()
+            : null;
+
         return new TrackDto(
-                track.getId(),
-                track.getTitle(),
-                track.getDuration(),
-                track.getGenre(),
-                track.getMood(),
-                track.getFilePath(),
-                track.getAlbum()    != null ? track.getAlbum().getId()        : null,
-                track.getArtist()    != null ? track.getArtist().getId()         : null,
-                track.getCreatedBy() != null ? track.getCreatedBy().getEmail()  : null
+            track.getId(),
+            track.getTitle(),
+            track.getDuration(),
+            track.getGenre(),
+            track.getMood(),
+            track.getFilePath(),
+            albumId,
+            artistId,
+            createdByEmail
         );
     }
 

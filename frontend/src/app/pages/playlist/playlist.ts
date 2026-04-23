@@ -58,13 +58,11 @@ export class PlaylistPage implements OnInit {
   moods = ['HAPPY', 'SAD', 'CHILL', 'FOCUS', 'HYPE', 'ROMANTIC', 'WORKOUT', 'ANGRY'];
   genres = ['POP', 'ROCK', 'JAZZ', 'CLASSICAL', 'ELECTRONIC', 'HIP_HOP', 'REGGAE', 'METAL', 'RNB', 'OTHER'];
 
-  constructor(
-    private playlistService: PlaylistService,
-    private trackService: TrackService,
-    private playerService: PlayerService,
-    private authService: AuthService,
-    private snackBar: MatSnackBar
-  ) {}
+  private playlistService = inject(PlaylistService);
+  private trackService = inject(TrackService);
+  private playerService = inject(PlayerService);
+  private authService = inject(AuthService);
+  private snackBar = inject(MatSnackBar);
 
   ngOnInit(): void {
     this.isAdmin = this.authService.isAdmin();

@@ -22,7 +22,9 @@ public class JwtService {
 
     /** JWT expiration duration in milliseconds. */
     private final long expirationMs;
-    private static final Logger log = LoggerFactory.getLogger(JwtService.class);
+
+    /** Logger for JwtService. */
+    private static final Logger LOG = LoggerFactory.getLogger(JwtService.class);
 
     /**
      * Creates a new JWT service.
@@ -91,7 +93,7 @@ public class JwtService {
             extractClaims(token);
             return true;
         } catch (JwtException | IllegalArgumentException e) {
-            log.info("Token invalide: {}", e.getMessage());
+            LOG.info("Token invalide: {}", e.getMessage());
             return false;
         }
     }

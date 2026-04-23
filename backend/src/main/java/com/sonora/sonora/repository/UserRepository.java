@@ -28,7 +28,19 @@ public interface UserRepository extends JpaRepository<User, Long> {
      */
     boolean existsByEmail(String email);
 
+    /**
+     * Finds users having the given role.
+     *
+     * @param role role to filter
+     * @return users with that role
+     */
     List<User> findByRole(Role role);
 
+    /**
+     * Counts users matching a role.
+     *
+     * @param role role to count
+     * @return number of users with that role
+     */
     long countByRole(Role role);
 }

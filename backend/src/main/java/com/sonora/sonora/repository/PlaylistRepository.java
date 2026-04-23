@@ -18,8 +18,15 @@ public interface PlaylistRepository extends JpaRepository<Playlist, Long> {
      */
     List<Playlist> findByUserEmail(String email);
 
+    /**
+     * Deletes all references to a track from playlist join table.
+     *
+     * @param trackId identifier of the track to remove
+     */
     @Modifying
     @Transactional
-    @Query(value = "DELETE FROM playlist_tracks WHERE track_id = :trackId", nativeQuery = true)
+    @Query(value = "DELETE FROM playlist_tracks "
+            + "WHERE track_id = :trackId",
+            nativeQuery = true)
     void deleteTrackFromPlaylists(Long trackId);
 }
