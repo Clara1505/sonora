@@ -20,7 +20,6 @@ export class PlayerService {
   private readonly API_URL = `${environment.apiUrl}/api/tracks`;
   private playStartTime = 0;
 
-  // ── Queue ─────────────────────────────────────────────────
   private queue: { id: number; title: string; artist: string }[] = [];
   private queueIndex = 0;
 
@@ -53,7 +52,6 @@ export class PlayerService {
 
     this.audio.onended = () => {
       this.notifyTrackPlayed();
-      // Passe automatiquement au suivant si disponible
       if (this.hasNext()) {
         this.next();
       } else {
@@ -89,7 +87,20 @@ export class PlayerService {
     this.updateState({ trackId, trackTitle, artistName, currentTime: 0 });
   }
 
-  // ── Queue management ──────────────────────────────────────
+  stop(): void {
+    this.audio.pause();
+    this.audio.src = '';
+    this.queue = [];
+    this.queueIndex = 0;
+    this.updateState({
+      isPlaying: false,
+      currentTime: 0,
+      duration: 0,
+      trackId: null,
+      trackTitle: '',
+      artistName: ''
+    });
+  }
 
   setQueue(tracks: { id: number; title: string; artist: string }[], startIndex = 0): void {
     this.queue = tracks;
@@ -106,7 +117,6 @@ export class PlayerService {
   }
 
   previous(): void {
-    // Si on est à plus de 3s dans le morceau, on revient au début
     if (this.audio.currentTime > 3) {
       this.seek(0);
       return;
@@ -124,8 +134,6 @@ export class PlayerService {
   hasPrevious(): boolean {
     return this.queue.length > 0 && (this.queueIndex > 0 || this.audio.currentTime > 3);
   }
-
-  // ── Playback controls ─────────────────────────────────────
 
   togglePlay(): void {
     if (this.audio.paused) {
