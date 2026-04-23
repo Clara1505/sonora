@@ -97,9 +97,7 @@
                     (click)="playTrack(selectedPlaylist.tracks[0], $event)">
               <mat-icon>play_arrow</mat-icon>
             </button>
-            <button mat-icon-button matTooltip="Lecture aléatoire">
-              <mat-icon>shuffle</mat-icon>
-            </button>
+            
             <button mat-stroked-button (click)="openAddModal()">
               <mat-icon>playlist_add</mat-icon>
               Ajouter des titres
@@ -120,7 +118,7 @@
             @if (track.genre) {
               <span class="genre-chip">{{ track.genre }}</span>
             }
-            <span class="track-duration">{{ formatDuration(track.duration || 0) }}</span>
+            <span class="track-duration">{{ formatDuration(track.duration) }}</span>
             <button mat-icon-button matTooltip="Écouter"
                     (click)="playTrack(track, $event)">
               <mat-icon>play_circle</mat-icon>
@@ -207,7 +205,7 @@
               @if (track.mood) {
                 <span class="mood-chip">{{ track.mood }}</span>
               }
-              <span class="track-duration">{{ formatDuration(track.duration || 0) }}</span>
+              <span class="track-duration">{{ formatDuration(track.duration) }}</span>
             </div>
             <button mat-icon-button
                     [color]="isTrackInPlaylist(track) ? '' : 'primary'"

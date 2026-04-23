@@ -72,6 +72,7 @@ export class Profile implements OnInit {
   }
 
   logout(): void {
+    this.playerService.stop();
     this.authService.logout();
     this.router.navigate(['/login']);
   }
@@ -81,17 +82,16 @@ export class Profile implements OnInit {
   }
 
   formatTotalDuration(seconds: number): string {
+    if (!seconds || seconds <= 0) return '0min';
     const h = Math.floor(seconds / 3600);
     const m = Math.floor((seconds % 3600) / 60);
+    const s = seconds % 60;
     if (h > 0) return `${h}h ${m}min`;
-    return `${m}min`;
+    if (m > 0) return `${m}min`;
+    return `${s}s`;
   }
 
   getTotalListeningTime(): string {
-    if (!this.userStats?.topTracks) return '0min';
-    const total = this.userStats.topTracks.reduce(
-      (acc, t) => acc + (t.totalDurationListened || 0), 0
-    );
-    return this.formatTotalDuration(total);
+    return this.formatTotalDuration(this.userStats?.totalListeningTime ?? 0);
   }
 }

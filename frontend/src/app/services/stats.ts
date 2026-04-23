@@ -13,6 +13,7 @@ export interface TrackStatsResponse {
 export interface UserStatsResponse {
   userEmail: string;
   totalPlays: number;
+  totalListeningTime: number;
   topTracks: TrackStatsResponse[];
 }
 
@@ -23,7 +24,9 @@ export class StatsService {
   private http = inject(HttpClient);
 
   getMyStats(): Observable<UserStatsResponse> {
-    return this.http.get<UserStatsResponse>(`${this.API_URL}/me`);
+    return this.http.get<UserStatsResponse>(`${this.API_URL}/me`, {
+      headers: { 'Cache-Control': 'no-cache' }
+    });
   }
 
   getTrackStats(trackId: number): Observable<TrackStatsResponse> {
