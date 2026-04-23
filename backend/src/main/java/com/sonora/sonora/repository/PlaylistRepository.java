@@ -8,7 +8,14 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.transaction.annotation.Transactional;
 
+/** Repository for playlist entities. */
 public interface PlaylistRepository extends JpaRepository<Playlist, Long> {
+    /**
+     * Finds playlists owned by a user.
+     *
+     * @param email user email
+     * @return matching playlists
+     */
     List<Playlist> findByUserEmail(String email);
 
     @Modifying

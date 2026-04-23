@@ -13,24 +13,41 @@ import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
+/** Service for generating and validating JWT access tokens. */
 @Service
 public class JwtService {
 
+    /** Key used to sign and verify JWT tokens. */
     private final SecretKey signingKey;
+
+    /** JWT expiration duration in milliseconds. */
     private final long expirationMs;
     private static final Logger log = LoggerFactory.getLogger(JwtService.class);
 
+    /**
+     * Creates a new JWT service.
+     *
+     * @param secret signing secret
+     * @param tokenExpirationMs expiration duration in milliseconds
+     */
     public JwtService(
-            @Value("${jwt.secret}") String secret,
-            @Value("${jwt.expiration-ms:86400000}") long expirationMs) {
-        this.signingKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
-        this.expirationMs = expirationMs;
+            @Value("${jwt.secret}") final String secret,
+            @Value("${jwt.expiration-ms:86400000}")
+            final long tokenExpirationMs) {
+        this.signingKey = Keys.hmacShaKeyFor(
+            secret.getBytes(StandardCharsets.UTF_8)
+        );
+        this.expirationMs = tokenExpirationMs;
     }
 
     /**
-     * Génère un token JWT contenant l'email et le rôle de l'utilisateur.
+     * Generates a JWT token containing email and role claims.
+     *
+     * @param email user email
+     * @param role user role
+     * @return signed JWT token
      */
-    public String generateToken(String email, String role) {
+    public String generateToken(final String email, final String role) {
         Date now = new Date();
         Date expiry = new Date(now.getTime() + expirationMs);
 
@@ -44,23 +61,32 @@ public class JwtService {
     }
 
     /**
-     * Extrait l'email (subject) du token.
+     * Extracts email (subject) from token.
+     *
+     * @param token JWT token
+     * @return email subject
      */
-    public String extractEmail(String token) {
+    public String extractEmail(final String token) {
         return extractClaims(token).getSubject();
     }
 
     /**
-     * Extrait le rôle du token.
+     * Extracts role claim from token.
+     *
+     * @param token JWT token
+     * @return role claim
      */
-    public String extractRole(String token) {
+    public String extractRole(final String token) {
         return extractClaims(token).get("role", String.class);
     }
 
     /**
-     * Vérifie que le token est valide (signature + expiration).
+     * Validates a JWT token signature and expiration.
+     *
+     * @param token JWT token
+     * @return true when token is valid
      */
-    public boolean isTokenValid(String token) {
+    public boolean isTokenValid(final String token) {
         try {
             extractClaims(token);
             return true;
@@ -70,7 +96,13 @@ public class JwtService {
         }
     }
 
-    private Claims extractClaims(String token) {
+    /**
+     * Parses JWT claims from a token.
+     *
+     * @param token JWT token
+     * @return parsed claims
+     */
+    private Claims extractClaims(final String token) {
         return Jwts.parser()
                 .verifyWith(signingKey)
                 .build()

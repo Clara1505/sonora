@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -24,26 +24,18 @@ import { FormsModule } from '@angular/forms';
 })
 export class PlayerBar implements OnInit {
   state: PlayerState | null = null;
-  favoriteIds: Set<number> = new Set();
+  favoriteIds = new Set<number>();
 
-  constructor(
-    private playerService: PlayerService,
-    private favoriteService: FavoriteService
-  ) {}
+  private playerService = inject(PlayerService);
+  private favoriteService = inject(FavoriteService);
 
   ngOnInit(): void {
     this.playerService.state$.subscribe(state => {
       this.state = state;
     });
-    this.loadFavorites();
-  }
-
-  loadFavorites(): void {
-    this.favoriteService.getAll().subscribe({
-      next: (favorites) => {
-        this.favoriteIds = new Set(favorites.map(f => f.trackId));
-      },
-      error: () => {}
+    // S'abonne au store centralisé — se met à jour quelle que soit la source
+    this.favoriteService.favoriteIds$.subscribe(ids => {
+      this.favoriteIds = ids;
     });
   }
 
@@ -55,47 +47,21 @@ export class PlayerBar implements OnInit {
     if (!this.state?.trackId) return;
     const trackId = this.state.trackId;
     if (this.isFavorite()) {
-      this.favoriteService.remove(trackId).subscribe(() => {
-        this.favoriteIds.delete(trackId);
-      });
+      this.favoriteService.remove(trackId).subscribe();
     } else {
-      this.favoriteService.add(trackId).subscribe(() => {
-        this.favoriteIds.add(trackId);
-      });
+      this.favoriteService.add(trackId).subscribe();
     }
   }
 
-  togglePlay(): void {
-    this.playerService.togglePlay();
-  }
+  togglePlay(): void { this.playerService.togglePlay(); }
+  next(): void { this.playerService.next(); }
+  previous(): void { this.playerService.previous(); }
+  get hasNext(): boolean { return this.playerService.hasNext(); }
+  get hasPrevious(): boolean { return this.playerService.hasPrevious(); }
+  toggleMute(): void { this.playerService.toggleMute(); }
 
-  next(): void {
-    this.playerService.next();
-  }
-
-  previous(): void {
-    this.playerService.previous();
-  }
-
-  get hasNext(): boolean {
-    return this.playerService.hasNext();
-  }
-
-  get hasPrevious(): boolean {
-    return this.playerService.hasPrevious();
-  }
-
-  toggleMute(): void {
-    this.playerService.toggleMute();
-  }
-
-  onSeek(event: any): void {
-    this.playerService.seek(event.target.value);
-  }
-
-  onVolumeChange(event: any): void {
-    this.playerService.setVolume(event.target.value);
-  }
+  onSeek(event: Event): void { this.playerService.seek(+(event.target as HTMLInputElement).value); }
+  onVolumeChange(event: Event): void { this.playerService.setVolume(+(event.target as HTMLInputElement).value); }
 
   formatTime(seconds: number): string {
     if (!seconds || isNaN(seconds)) return '0:00';

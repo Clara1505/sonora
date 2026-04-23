@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -10,7 +10,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { Genre, Mood } from '../../models/track';
+import { Genre, Mood, TrackDto } from '../../models/track';
 import { TrackService } from '../../services/track';
 import { ArtistService } from '../../services/artist';
 import { PlayerService } from '../../services/player';
@@ -40,10 +40,10 @@ import { forkJoin } from 'rxjs';
   styleUrl: './catalogue.scss'
 })
 export class Catalogue implements OnInit {
-  tracks: any[] = [];
-  filteredTracks: any[] = [];
-  artistMap: Map<number, string> = new Map();
-  favoriteIds: Set<number> = new Set();
+  tracks: TrackDto[] = [];
+  filteredTracks: TrackDto[] = [];
+  artistMap = new Map<number, string>();
+  favoriteIds = new Set<number>();
   isLoading = false;
   isAdmin = false;
   currentUserEmail: string | null = null;
@@ -68,7 +68,10 @@ export class Catalogue implements OnInit {
     this.isAdmin = this.authService.isAdmin();
     this.currentUserEmail = this.authService.currentUserValue?.email ?? null;
     this.loadTracks();
-    this.loadFavorites();
+    // S'abonne au store centralisé — se met à jour quelle que soit la source
+    this.favoriteService.favoriteIds$.subscribe(ids => {
+      this.favoriteIds = ids;
+    });
   }
 
   loadTracks(): void {
@@ -79,22 +82,11 @@ export class Catalogue implements OnInit {
     }).subscribe({
       next: ({ artists, tracks }) => {
         artists.forEach(a => this.artistMap.set(a.id, a.name));
-        this.tracks = tracks;
-        this.filteredTracks = tracks;
+        this.tracks = tracks as unknown as TrackDto[];
+        this.filteredTracks = tracks as unknown as TrackDto[];
         this.isLoading = false;
       },
-      error: () => {
-        this.isLoading = false;
-      }
-    });
-  }
-
-  loadFavorites(): void {
-    this.favoriteService.getAll().subscribe({
-      next: (favorites) => {
-        favorites.forEach(f => this.favoriteIds.add(f.trackId));
-      },
-      error: () => {}
+      error: () => { this.isLoading = false; }
     });
   }
 
@@ -102,15 +94,11 @@ export class Catalogue implements OnInit {
     return this.favoriteIds.has(trackId);
   }
 
-  toggleFavorite(track: any): void {
+  toggleFavorite(track: TrackDto): void {
     if (this.isFavorite(track.id)) {
-      this.favoriteService.remove(track.id).subscribe(() => {
-        this.favoriteIds.delete(track.id);
-      });
+      this.favoriteService.remove(track.id).subscribe();
     } else {
-      this.favoriteService.add(track.id).subscribe(() => {
-        this.favoriteIds.add(track.id);
-      });
+      this.favoriteService.add(track.id).subscribe();
     }
   }
 
@@ -118,7 +106,7 @@ export class Catalogue implements OnInit {
     return this.artistMap.get(artistId) || 'Artiste inconnu';
   }
 
-  playTrack(track: any): void {
+  playTrack(track: TrackDto): void {
     const queue = this.filteredTracks.map(t => ({
       id: t.id,
       title: t.title,

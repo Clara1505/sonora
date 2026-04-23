@@ -5,12 +5,16 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/** Event published when a track is played by a user. */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class TrackPlayedEvent {
-    private Long   trackId;
+    /** Played track identifier. */
+    private Long trackId;
+    /** User email that played the track. */
     private String userEmail;
-    private Integer durationListened; // en secondes
+    /** Listened duration in seconds. */
+    private Integer durationListened;
 }

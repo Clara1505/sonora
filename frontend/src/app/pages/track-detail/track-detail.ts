@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
@@ -8,10 +8,11 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TrackService } from '../../services/track';
+import { TrackDto } from '../../models/track';
 import { ArtistService } from '../../services/artist';
 import { FavoriteService } from '../../services/favorite';
 import { PlayerService } from '../../services/player';
-import { forkJoin } from 'rxjs';
+import { forkJoin, Observable } from 'rxjs';
 
 @Component({
   selector: 'app-track-detail',
@@ -30,33 +31,30 @@ import { forkJoin } from 'rxjs';
   styleUrl: './track-detail.scss'
 })
 export class TrackDetail implements OnInit {
-  track: any = null;
+  track: TrackDto | null = null;
   artistName = '';
   artistBio = '';
   isLoading = true;
   isFavorite = false;
-
-  constructor(
-    private route: ActivatedRoute,
-    private trackService: TrackService,
-    private artistService: ArtistService,
-    private favoriteService: FavoriteService,
-    private playerService: PlayerService
-  ) {}
+  private route = inject(ActivatedRoute);
+  private trackService = inject(TrackService);
+  private artistService = inject(ArtistService);
+  private favoriteService = inject(FavoriteService);
+  private playerService = inject(PlayerService);
 
   ngOnInit(): void {
     const id = Number(this.route.snapshot.paramMap.get('id'));
     forkJoin({
-      track: this.trackService.getById(id) as any,
+      track: this.trackService.getById(id) as unknown as Observable<TrackDto>,
       favorites: this.favoriteService.getAll()
     }).subscribe({
-      next: ({ track, favorites }: any) => {
+      next: ({ track, favorites }) => {
         this.track = track;
-        this.isFavorite = favorites.some((f: any) => f.trackId === track.id);
+        this.isFavorite = favorites.some(f => f.trackId === track.id);
         if (track.artistId) {
           this.artistService.getById(track.artistId).subscribe(artist => {
             this.artistName = artist.name;
-            this.artistBio = (artist as any).bio || '';
+            this.artistBio = artist.bio ?? '';
           });
         }
         this.isLoading = false;

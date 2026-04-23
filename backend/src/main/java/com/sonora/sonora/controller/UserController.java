@@ -14,27 +14,48 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/** REST controller for public authentication endpoints. */
 @RestController
 @RequestMapping("/api/auth")
-@Tag(name = "Authentification", description = "Inscription et connexion des utilisateurs")
+@Tag(name = "Authentication", description = "Register and login endpoints")
 public class UserController {
 
+    /** Authentication service. */
     private final AuthService authService;
 
-    public UserController(AuthService authService) {
-        this.authService = authService;
+    /**
+     * Creates user controller.
+     *
+     * @param service authentication service
+     */
+    public UserController(final AuthService service) {
+        this.authService = service;
     }
 
+    /**
+     * Registers a new user.
+     *
+     * @param request registration payload
+     * @return authentication response with token
+     */
     @PostMapping("/register")
-    @Operation(summary = "Inscription d'un nouvel utilisateur")
-    public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
+    @Operation(summary = "Register a new user")
+    public ResponseEntity<AuthResponse> register(
+            @Valid @RequestBody final RegisterRequest request) {
         AuthResponse response = authService.register(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    /**
+     * Logs in an existing user.
+     *
+     * @param request login payload
+     * @return authentication response with token
+     */
     @PostMapping("/login")
-    @Operation(summary = "Connexion d'un utilisateur existant")
-    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
+    @Operation(summary = "Login an existing user")
+    public ResponseEntity<AuthResponse> login(
+            @Valid @RequestBody final LoginRequest request) {
         AuthResponse response = authService.login(request);
         return ResponseEntity.ok(response);
     }

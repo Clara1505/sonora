@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
@@ -12,7 +12,7 @@ import { FormsModule } from '@angular/forms';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { Playlist as PlaylistModel } from '../../models/playlist';
-import { Track } from '../../models/track';
+import { Track, Mood, Genre } from '../../models/track';
 import { PlaylistService } from '../../services/playlist';
 import { TrackService } from '../../services/track';
 import { PlayerService } from '../../services/player';
@@ -97,7 +97,7 @@ export class PlaylistPage implements OnInit {
     this.showAddModal = false;
   }
 
-  playTrack(track: any, event: Event): void {
+  playTrack(track: Track, event: Event): void {
     event.stopPropagation();
     if (!this.selectedPlaylist) return;
     const queue = this.selectedPlaylist.tracks.map(t => ({
@@ -114,8 +114,8 @@ export class PlaylistPage implements OnInit {
     const dto = {
       name: this.newPlaylistName,
       type: this.newPlaylistType,
-      ...(this.newPlaylistType === 'SMART' && this.smartMood && { mood: this.smartMood as any }),
-      ...(this.newPlaylistType === 'SMART' && this.smartGenre && { genre: this.smartGenre as any }),
+      ...(this.newPlaylistType === 'SMART' && this.smartMood && { mood: this.smartMood as Mood }),
+      ...(this.newPlaylistType === 'SMART' && this.smartGenre && { genre: this.smartGenre as Genre }),
     };
     this.playlistService.create(dto).subscribe(created => {
       this.playlists = [...this.playlists, created];
