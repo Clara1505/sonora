@@ -1,5 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
+import { provideRouter } from '@angular/router';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { Upload } from './upload';
 
 describe('Upload', () => {
@@ -9,6 +11,11 @@ describe('Upload', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [Upload],
+      providers: [
+        provideRouter([]),
+        provideHttpClient(),
+        provideHttpClientTesting(),
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(Upload);
