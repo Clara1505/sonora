@@ -89,10 +89,7 @@
                     (click)="playTrack(selectedPlaylist.tracks[0], $event)">
               <mat-icon>play_arrow</mat-icon>
             </button>
-            <button mat-icon-button matTooltip="Lecture aléatoire">
-              <mat-icon>shuffle</mat-icon>
-            </button>
-            @if (selectedPlaylist.type === 'MANUAL') {
+@if (selectedPlaylist.type === 'MANUAL') {
               <button mat-stroked-button (click)="openAddModal()">
                 <mat-icon>playlist_add</mat-icon>
                 Ajouter des titres
