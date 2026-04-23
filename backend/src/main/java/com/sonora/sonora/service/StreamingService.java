@@ -8,9 +8,11 @@ import com.sonora.sonora.kafka.TrackImportedEvent;
 import com.sonora.sonora.kafka.TrackPlayedEvent;
 import com.sonora.sonora.kafka.TrackPlayedProducer;
 import com.sonora.sonora.model.entity.Artist;
+import com.sonora.sonora.model.entity.PlayHistory;
 import com.sonora.sonora.model.entity.Track;
 import com.sonora.sonora.model.entity.User;
 import com.sonora.sonora.repository.ArtistRepository;
+import com.sonora.sonora.repository.PlayHistoryRepository;
 import com.sonora.sonora.repository.TrackRepository;
 import com.sonora.sonora.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -57,6 +59,9 @@ public class StreamingService {
 
     /** Repository for user lookups. */
     private final UserRepository userRepository;
+
+    /** Repository for play history persistence. */
+    private final PlayHistoryRepository playHistoryRepository;
 
     /** Producer for track import events. */
     private final TrackEventProducer trackEventProducer;
@@ -200,9 +205,19 @@ public class StreamingService {
     public void publishTrackPlayed(final Long trackId,
                                    final String userEmail,
                                    final Integer durationListened) {
-        if (!trackRepository.existsById(trackId)) {
-            throw new ResourceNotFoundException("Track not found: " + trackId);
-        }
+        Track track = trackRepository.findById(trackId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Track not found: " + trackId));
+
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "User not found: " + userEmail));
+
+        playHistoryRepository.save(PlayHistory.builder()
+                .track(track)
+                .user(user)
+                .durationListened(durationListened)
+                .build());
 
         trackPlayedProducer.sendTrackPlayed(TrackPlayedEvent.builder()
                 .trackId(trackId)
