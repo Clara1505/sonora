@@ -18,10 +18,8 @@ public class TrackPlayedConsumer {
      */
     @KafkaListener(topics = "track.played", groupId = "sonora-group")
     public void consume(final TrackPlayedEvent event) {
-        log.info("Event reçu [track.played] : 
-                    trackId={}, 
-                    user={}, 
-                    duration={}s",
+        log.info("Event reçu [track.played] :" + 
+        " trackId={}, user={}, duration={}s",
                 event.getTrackId(), 
                 event.getUserEmail(), 
                 event.getDurationListened());
