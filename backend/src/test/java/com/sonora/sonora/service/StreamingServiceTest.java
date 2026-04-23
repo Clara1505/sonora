@@ -9,7 +9,10 @@ import com.sonora.sonora.kafka.TrackPlayedEvent;
 import com.sonora.sonora.kafka.TrackPlayedProducer;
 import com.sonora.sonora.model.entity.Artist;
 import com.sonora.sonora.model.entity.Track;
+import com.sonora.sonora.model.entity.User;
+import com.sonora.sonora.model.enums.Role;
 import com.sonora.sonora.repository.ArtistRepository;
+import com.sonora.sonora.repository.PlayHistoryRepository;
 import com.sonora.sonora.repository.TrackRepository;
 import com.sonora.sonora.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,11 +39,12 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class StreamingServiceTest {
 
-    @Mock private TrackRepository    trackRepository;
-    @Mock private ArtistRepository   artistRepository;
-    @Mock private UserRepository     userRepository;
-    @Mock private TrackEventProducer trackEventProducer;
-    @Mock private TrackPlayedProducer trackPlayedProducer;
+    @Mock private TrackRepository       trackRepository;
+    @Mock private ArtistRepository      artistRepository;
+    @Mock private UserRepository        userRepository;
+    @Mock private PlayHistoryRepository playHistoryRepository;
+    @Mock private TrackEventProducer    trackEventProducer;
+    @Mock private TrackPlayedProducer   trackPlayedProducer;
     @InjectMocks private StreamingService streamingService;
 
     @TempDir Path tempDir;
@@ -138,11 +142,15 @@ class StreamingServiceTest {
     }
 
     @Test
-    void publishTrackPlayed_withExistingTrack_shouldPublishKafkaEvent() {
-        when(trackRepository.existsById(10L)).thenReturn(true);
+    void publishTrackPlayed_withExistingTrack_shouldSaveHistoryAndPublishKafkaEvent() {
+        Track track = Track.builder().id(10L).title("Test").build();
+        User  user  = User.builder().id(1L).email("user@sonora.com").role(Role.USER).build();
+        when(trackRepository.findById(10L)).thenReturn(Optional.of(track));
+        when(userRepository.findByEmail("user@sonora.com")).thenReturn(Optional.of(user));
 
         streamingService.publishTrackPlayed(10L, "user@sonora.com", 95);
 
+        verify(playHistoryRepository).save(any());
         ArgumentCaptor<TrackPlayedEvent> captor = ArgumentCaptor.forClass(TrackPlayedEvent.class);
         verify(trackPlayedProducer).sendTrackPlayed(captor.capture());
         assertThat(captor.getValue().getTrackId()).isEqualTo(10L);
@@ -152,7 +160,7 @@ class StreamingServiceTest {
 
     @Test
     void publishTrackPlayed_withUnknownTrack_shouldThrow404() {
-        when(trackRepository.existsById(99L)).thenReturn(false);
+        when(trackRepository.findById(99L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> streamingService.publishTrackPlayed(99L, "user@sonora.com", 95))
                 .isInstanceOf(ResourceNotFoundException.class)
