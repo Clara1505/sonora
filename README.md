@@ -107,11 +107,14 @@ openssl rand -base64 32
 
 ### Arrêt et nettoyage
 
-\`\`\`bash
+
 # Arrêter les conteneurs
+\`\`\`bash
 docker compose down
+\`\`\`
 
 # Arrêter ET supprimer les volumes (base de données, données Kafka)
+\`\`\`bash
 docker compose down -v
 \`\`\`
 
