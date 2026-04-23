@@ -4,7 +4,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
-/** Consumer logging played-track events (persistence is handled synchronously by the REST endpoint). */
+/** Consumer logging played-track events 
+ * (persistence is handled synchronously 
+ * by the REST endpoint). */
 @Slf4j
 @Component
 public class TrackPlayedConsumer {
@@ -16,7 +18,12 @@ public class TrackPlayedConsumer {
      */
     @KafkaListener(topics = "track.played", groupId = "sonora-group")
     public void consume(final TrackPlayedEvent event) {
-        log.info("Event reçu [track.played] : trackId={}, user={}, duration={}s",
-                event.getTrackId(), event.getUserEmail(), event.getDurationListened());
+        log.info("Event reçu [track.played] : 
+                    trackId={}, 
+                    user={}, 
+                    duration={}s",
+                event.getTrackId(), 
+                event.getUserEmail(), 
+                event.getDurationListened());
     }
 }
