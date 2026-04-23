@@ -9,6 +9,7 @@ export interface Playlist {
   type: PlaylistType;
   imageUrl?: string;
   createdAt: string;
+  userEmail?: string;
   tracks: Track[];
 }
 

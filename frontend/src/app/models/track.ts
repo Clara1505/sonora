@@ -14,6 +14,7 @@ export interface Track {
   filePath?: string;
   album?: Album;
   artist: Artist;
+  createdByEmail?: string;
 }
 
 // DTO tel que retourné par le backend (IDs plats)
@@ -26,4 +27,5 @@ export interface TrackDto {
   filePath?: string;
   albumId?: number;
   artistId: number;
+  createdByEmail?: string;
 }

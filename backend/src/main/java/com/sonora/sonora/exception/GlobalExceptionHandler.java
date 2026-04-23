@@ -3,6 +3,7 @@ package com.sonora.sonora.exception;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -92,6 +93,27 @@ public class GlobalExceptionHandler {
         );
         return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).body(body);
     }
+
+        /**
+         * Handles access denied exceptions and returns a 403 response.
+         *
+         * @param ex thrown AccessDeniedException
+         * @param request current HTTP request
+         * @return API error response with 403 status
+         */
+        @ExceptionHandler(AccessDeniedException.class)
+        public ResponseEntity<ApiErrorResponse> handleAccessDenied(
+                        final AccessDeniedException ex,
+                        final HttpServletRequest request) {
+                ApiErrorResponse body = new ApiErrorResponse(
+                                Instant.now(),
+                                HttpStatus.FORBIDDEN.value(),
+                                HttpStatus.FORBIDDEN.getReasonPhrase(),
+                                ex.getMessage(),
+                                request.getRequestURI()
+                );
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);
+        }
 
     /**
      * Handles duplicate favorite creation attempts.

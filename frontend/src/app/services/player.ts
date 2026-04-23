@@ -77,7 +77,7 @@ export class PlayerService {
       return;
     }
 
-    if (this.state.trackId && !this.audio.paused) {
+    if (this.state.trackId) {
       this.notifyTrackPlayed();
     }
 
@@ -88,6 +88,9 @@ export class PlayerService {
   }
 
   stop(): void {
+    if (this.state.trackId) {
+      this.notifyTrackPlayed();
+    }
     this.audio.pause();
     this.audio.src = '';
     this.queue = [];

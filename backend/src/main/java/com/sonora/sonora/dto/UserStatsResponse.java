@@ -13,6 +13,8 @@ public class UserStatsResponse {
     private String userEmail;
     /** Total number of played tracks. */
     private long totalPlays;
+    /** Total listening time in seconds across all plays. */
+    private long totalListeningTime;
     /** Most played tracks for the user. */
     private List<TrackStatsResponse> topTracks;
 }

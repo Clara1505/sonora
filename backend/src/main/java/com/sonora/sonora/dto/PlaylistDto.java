@@ -14,6 +14,7 @@ import java.util.List;
  * @param imageUrl playlist image URL
  * @param createdAt creation timestamp
  * @param tracks tracks in playlist
+ * @param userEmail owner email
  */
 public record PlaylistDto(
         Long id,
@@ -21,6 +22,7 @@ public record PlaylistDto(
         PlaylistType type,
         String imageUrl,
         LocalDateTime createdAt,
+        String userEmail,
         List<PlaylistTrackDto> tracks
 ) {
 }

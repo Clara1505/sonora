@@ -9,6 +9,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -36,13 +39,17 @@ public class TrackController {
      * Creates a track.
      *
      * @param dto track payload
+     * @param email authenticated user email
      * @return created track
      */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Create a track")
-    public TrackDto create(@Valid @RequestBody final TrackCreateUpdateDto dto) {
-        return trackService.create(dto);
+    public TrackDto create(
+            @Valid @RequestBody final TrackCreateUpdateDto dto,
+            @AuthenticationPrincipal final String email) {
+        return trackService.create(dto, email);
     }
 
     /**
@@ -77,6 +84,7 @@ public class TrackController {
      */
     @PutMapping("/{id}")
     @Operation(summary = "Update a track")
+    @PreAuthorize("hasRole('ADMIN')")
     public TrackDto update(@PathVariable final Long id,
                            @Valid @RequestBody final TrackCreateUpdateDto dto) {
         return trackService.update(id, dto);
@@ -86,11 +94,22 @@ public class TrackController {
      * Deletes a track.
      *
      * @param id track identifier
+     * @param email authenticated user email
+     * @param authentication authentication token (may be null)
      */
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(summary = "Delete a track")
-    public void delete(@PathVariable final Long id) {
-        trackService.delete(id);
-    }
+        public void delete(
+            @PathVariable final Long id,
+            @AuthenticationPrincipal final String email,
+            final Authentication authentication) {
+        boolean isAdmin = false;
+        if (authentication != null) {
+            isAdmin = authentication.getAuthorities()
+                    .stream()
+                    .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        }
+        trackService.delete(id, email, isAdmin);
+        }
 }

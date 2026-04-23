@@ -16,6 +16,7 @@ import { Track, Mood, Genre } from '../../models/track';
 import { PlaylistService } from '../../services/playlist';
 import { TrackService } from '../../services/track';
 import { PlayerService } from '../../services/player';
+import { AuthService } from '../../services/auth';
 
 @Component({
   selector: 'app-playlist',
@@ -42,6 +43,7 @@ export class PlaylistPage implements OnInit {
   selectedPlaylist: PlaylistModel | null = null;
   showCreateForm = false;
   showAddModal = false;
+  isAdmin = false;
 
   newPlaylistName = '';
   newPlaylistType: 'MANUAL' | 'SMART' = 'MANUAL';
@@ -59,10 +61,16 @@ export class PlaylistPage implements OnInit {
   private playlistService = inject(PlaylistService);
   private trackService = inject(TrackService);
   private playerService = inject(PlayerService);
+  private authService = inject(AuthService);
   private snackBar = inject(MatSnackBar);
 
   ngOnInit(): void {
-    this.playlistService.getAll().subscribe(playlists => {
+    this.isAdmin = this.authService.isAdmin();
+    const playlists$ = this.isAdmin
+      ? this.playlistService.getAllAdmin()
+      : this.playlistService.getAll();
+
+    playlists$.subscribe(playlists => {
       this.playlists = playlists;
       if (playlists.length > 0) this.selectedPlaylist = playlists[0];
     });
@@ -154,7 +162,8 @@ export class PlaylistPage implements OnInit {
     });
   }
 
-  formatDuration(seconds: number): string {
+  formatDuration(seconds: number | null | undefined): string {
+    if (!seconds) return '--:--';
     const m = Math.floor(seconds / 60);
     const s = seconds % 60;
     return `${m}:${s.toString().padStart(2, '0')}`;

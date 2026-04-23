@@ -15,6 +15,8 @@ import { TrackService } from '../../services/track';
 import { ArtistService } from '../../services/artist';
 import { PlayerService } from '../../services/player';
 import { FavoriteService } from '../../services/favorite';
+import { AuthService } from '../../services/auth';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { forkJoin } from 'rxjs';
 
 @Component({
@@ -32,6 +34,7 @@ import { forkJoin } from 'rxjs';
     MatSelectModule,
     MatChipsModule,
     MatProgressSpinnerModule,
+    MatSnackBarModule,
   ],
   templateUrl: './catalogue.html',
   styleUrl: './catalogue.scss'
@@ -42,6 +45,8 @@ export class Catalogue implements OnInit {
   artistMap = new Map<number, string>();
   favoriteIds = new Set<number>();
   isLoading = false;
+  isAdmin = false;
+  currentUserEmail: string | null = null;
 
   searchQuery = '';
   selectedGenre: Genre | '' = '';
@@ -54,8 +59,12 @@ export class Catalogue implements OnInit {
   private artistService = inject(ArtistService);
   private playerService = inject(PlayerService);
   private favoriteService = inject(FavoriteService);
+  private authService = inject(AuthService);
+  private snackBar = inject(MatSnackBar);
 
   ngOnInit(): void {
+    this.isAdmin = this.authService.isAdmin();
+    this.currentUserEmail = this.authService.currentUserValue?.email ?? null;
     this.loadTracks();
     // S'abonne au store centralisé — se met à jour quelle que soit la source
     this.favoriteService.favoriteIds$.subscribe(ids => {
@@ -122,6 +131,24 @@ export class Catalogue implements OnInit {
     this.selectedGenre = '';
     this.selectedMood = '';
     this.filteredTracks = this.tracks;
+  }
+
+  canDelete(track: TrackDto): boolean {
+    return this.isAdmin || (track.createdByEmail != null && track.createdByEmail === this.currentUserEmail);
+  }
+
+  deleteTrack(track: TrackDto): void {
+    if (!confirm(`Supprimer "${track.title}" définitivement ?`)) return;
+    this.trackService.delete(track.id).subscribe({
+      next: () => {
+        this.tracks = this.tracks.filter(t => t.id !== track.id);
+        this.filteredTracks = this.filteredTracks.filter(t => t.id !== track.id);
+        this.snackBar.open(`"${track.title}" supprimé`, 'OK', { duration: 3000 });
+      },
+      error: () => {
+        this.snackBar.open('Erreur lors de la suppression', 'OK', { duration: 3000 });
+      }
+    });
   }
 
   formatDuration(seconds: number): string {

@@ -44,3 +44,8 @@ __screenshots__/
 Thumbs.db
 
 src/environments/environment.ts
+
+# environment.ts est versionné (valeurs non sensibles pour dev et tests)
+# Seul environment.prod.ts est dans le repo ; environment.ts est généré en CI
+# On le commit ici pour permettre les tests locaux sans setup supplémentaire
+!src/environments/environment.ts
