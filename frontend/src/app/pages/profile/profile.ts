@@ -9,6 +9,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth';
 import { StatsService, UserStatsResponse } from '../../services/stats';
+import { AdminService, AdminStats } from '../../services/admin';
 import { PlayerService } from '../../services/player';
 import { User } from '../../models/user';
 
@@ -31,11 +32,13 @@ import { User } from '../../models/user';
 export class Profile implements OnInit {
   currentUser: User | null = null;
   userStats: UserStatsResponse | null = null;
+  adminStats: AdminStats | null = null;
   isLoading = false;
 
   constructor(
     private authService: AuthService,
     private statsService: StatsService,
+    private adminService: AdminService,
     private playerService: PlayerService,
     private router: Router
   ) {}
@@ -62,6 +65,12 @@ export class Profile implements OnInit {
         this.isLoading = false;
       }
     });
+    if (this.authService.isAdmin()) {
+      this.adminService.getStats().subscribe({
+        next: (stats) => { this.adminStats = stats; },
+        error: () => {}
+      });
+    }
   }
 
   logout(): void {

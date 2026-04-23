@@ -47,7 +47,7 @@ class StreamingControllerTest {
                 {"title":"Ma chanson","artistId":1,"duration":200,"genre":"POP","mood":"HAPPY"}
                 """.getBytes());
 
-        TrackDto response = new TrackDto(1L, "Ma chanson", 200, Genre.POP, Mood.HAPPY, "uuid.mp3", null, 1L);
+        TrackDto response = new TrackDto(1L, "Ma chanson", 200, Genre.POP, Mood.HAPPY, "uuid.mp3", null, 1L, null);
         when(streamingService.uploadTrack(any(), any(), any())).thenReturn(response);
 
         mockMvc.perform(multipart("/api/tracks/upload").file(file).file(metadata))

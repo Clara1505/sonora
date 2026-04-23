@@ -6,6 +6,8 @@ import com.sonora.sonora.service.PlaylistService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,6 +33,12 @@ public class PlaylistController {
         return playlistService.getUserPlaylists(email);
     }
 
+    @GetMapping("/all")
+    @PreAuthorize("hasRole('ADMIN')")
+    public List<PlaylistDto> listAll() {
+        return playlistService.getAllPlaylists();
+    }
+
     @GetMapping("/{id}")
     public PlaylistDto getById(
             @PathVariable Long id,
@@ -42,8 +50,15 @@ public class PlaylistController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(
             @PathVariable Long id,
-            @AuthenticationPrincipal String email) {
-        playlistService.delete(id, email);
+            @AuthenticationPrincipal String email,
+            Authentication authentication) {
+        boolean isAdmin = authentication != null && authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        if (isAdmin) {
+            playlistService.adminDelete(id);
+        } else {
+            playlistService.delete(id, email);
+        }
     }
 
     @PostMapping("/{id}/tracks/{trackId}")

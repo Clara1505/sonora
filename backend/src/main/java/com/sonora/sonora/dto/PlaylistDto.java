@@ -11,6 +11,7 @@ public record PlaylistDto(
         PlaylistType type,
         String imageUrl,
         LocalDateTime createdAt,
+        String userEmail,
         List<PlaylistTrackDto> tracks
 ) {
 }

@@ -9,8 +9,10 @@ import com.sonora.sonora.kafka.TrackPlayedEvent;
 import com.sonora.sonora.kafka.TrackPlayedProducer;
 import com.sonora.sonora.model.entity.Artist;
 import com.sonora.sonora.model.entity.Track;
+import com.sonora.sonora.model.entity.User;
 import com.sonora.sonora.repository.ArtistRepository;
 import com.sonora.sonora.repository.TrackRepository;
+import com.sonora.sonora.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -39,6 +41,7 @@ public class StreamingService {
 
     private final TrackRepository    trackRepository;
     private final ArtistRepository   artistRepository;
+    private final UserRepository     userRepository;
     private final TrackEventProducer trackEventProducer;
     private final TrackPlayedProducer trackPlayedProducer;
 
@@ -67,6 +70,8 @@ public class StreamingService {
             }
         }
 
+        User uploader = userRepository.findByEmail(uploadedByEmail).orElse(null);
+
         Track track = Track.builder()
                 .title(request.getTitle())
                 .duration(request.getDuration())
@@ -74,6 +79,7 @@ public class StreamingService {
                 .mood(request.getMood())
                 .filePath(filename)
                 .artist(artist)
+                .createdBy(uploader)
                 .build();
 
         Track saved = trackRepository.save(track);
@@ -157,8 +163,9 @@ public class StreamingService {
                 track.getGenre(),
                 track.getMood(),
                 track.getFilePath(),
-                track.getAlbum()  != null ? track.getAlbum().getId()   : null,
-                track.getArtist() != null ? track.getArtist().getId()  : null
+                track.getAlbum()     != null ? track.getAlbum().getId()          : null,
+                track.getArtist()    != null ? track.getArtist().getId()         : null,
+                track.getCreatedBy() != null ? track.getCreatedBy().getEmail()   : null
         );
     }
 

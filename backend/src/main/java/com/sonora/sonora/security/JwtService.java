@@ -6,6 +6,8 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
@@ -16,6 +18,7 @@ public class JwtService {
 
     private final SecretKey signingKey;
     private final long expirationMs;
+    private static final Logger log = LoggerFactory.getLogger(JwtService.class);
 
     public JwtService(
             @Value("${jwt.secret}") String secret,
@@ -62,6 +65,7 @@ public class JwtService {
             extractClaims(token);
             return true;
         } catch (JwtException | IllegalArgumentException e) {
+            log.info("Token invalide: {}", e.getMessage());
             return false;
         }
     }

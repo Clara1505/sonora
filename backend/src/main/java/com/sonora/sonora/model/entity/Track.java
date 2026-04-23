@@ -42,6 +42,10 @@ public class Track {
     @JoinColumn(name = "artist_id", nullable = false)
     private Artist artist;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by_id")
+    private User createdBy;
+
     @ManyToMany(mappedBy = "tracks")
     @Builder.Default
     private List<Playlist> playlists = new ArrayList<>();

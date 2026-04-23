@@ -16,6 +16,7 @@ import { Track } from '../../models/track';
 import { PlaylistService } from '../../services/playlist';
 import { TrackService } from '../../services/track';
 import { PlayerService } from '../../services/player';
+import { AuthService } from '../../services/auth';
 
 @Component({
   selector: 'app-playlist',
@@ -42,6 +43,7 @@ export class PlaylistPage implements OnInit {
   selectedPlaylist: PlaylistModel | null = null;
   showCreateForm = false;
   showAddModal = false;
+  isAdmin = false;
 
   newPlaylistName = '';
   newPlaylistType: 'MANUAL' | 'SMART' = 'MANUAL';
@@ -60,11 +62,17 @@ export class PlaylistPage implements OnInit {
     private playlistService: PlaylistService,
     private trackService: TrackService,
     private playerService: PlayerService,
+    private authService: AuthService,
     private snackBar: MatSnackBar
   ) {}
 
   ngOnInit(): void {
-    this.playlistService.getAll().subscribe(playlists => {
+    this.isAdmin = this.authService.isAdmin();
+    const playlists$ = this.isAdmin
+      ? this.playlistService.getAllAdmin()
+      : this.playlistService.getAll();
+
+    playlists$.subscribe(playlists => {
       this.playlists = playlists;
       if (playlists.length > 0) this.selectedPlaylist = playlists[0];
     });

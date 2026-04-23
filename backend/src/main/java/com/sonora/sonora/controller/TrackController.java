@@ -6,6 +6,9 @@ import com.sonora.sonora.service.TrackService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,8 +22,11 @@ public class TrackController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public TrackDto create(@Valid @RequestBody TrackCreateUpdateDto dto) {
-        return trackService.create(dto);
+    @PreAuthorize("hasRole('ADMIN')")
+    public TrackDto create(
+            @Valid @RequestBody TrackCreateUpdateDto dto,
+            @AuthenticationPrincipal String email) {
+        return trackService.create(dto, email);
     }
 
     @GetMapping
@@ -34,13 +40,19 @@ public class TrackController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public TrackDto update(@PathVariable Long id, @Valid @RequestBody TrackCreateUpdateDto dto) {
         return trackService.update(id, dto);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable Long id) {
-        trackService.delete(id);
+    public void delete(
+            @PathVariable Long id,
+            @AuthenticationPrincipal String email,
+            Authentication authentication) {
+        boolean isAdmin = authentication != null && authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        trackService.delete(id, email, isAdmin);
     }
 }

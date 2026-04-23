@@ -11,6 +11,7 @@ import com.sonora.sonora.model.entity.Artist;
 import com.sonora.sonora.model.entity.Track;
 import com.sonora.sonora.repository.ArtistRepository;
 import com.sonora.sonora.repository.TrackRepository;
+import com.sonora.sonora.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,6 +38,7 @@ class StreamingServiceTest {
 
     @Mock private TrackRepository    trackRepository;
     @Mock private ArtistRepository   artistRepository;
+    @Mock private UserRepository     userRepository;
     @Mock private TrackEventProducer trackEventProducer;
     @Mock private TrackPlayedProducer trackPlayedProducer;
     @InjectMocks private StreamingService streamingService;

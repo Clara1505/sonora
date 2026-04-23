@@ -45,6 +45,9 @@ public class SecurityConfig {
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/api/spotify/**").permitAll()
                         .requestMatchers("/actuator/health").permitAll()
+                        // Endpoints admin uniquement
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/playlists/all").hasRole("ADMIN")
                         // Tout le reste nécessite une authentification
                         .anyRequest().authenticated()
                 )
@@ -66,7 +69,10 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of("http://localhost:4200"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("*"));
+        // Autoriser explicitement l'en-tête Authorization pour les requêtes CORS
+        config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept"));
+        // Exposer Authorization si nécessaire côté client
+        config.setExposedHeaders(List.of("Authorization"));
         config.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

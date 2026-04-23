@@ -43,11 +43,11 @@ class PlaylistControllerTest {
     private PlaylistDto mockDto(PlaylistType type) {
         ArtistDto artist = new ArtistDto(1L, "Daft Punk", null, null);
         PlaylistTrackDto track = new PlaylistTrackDto(1L, "Get Lucky", 248, Genre.POP, Mood.HAPPY, artist);
-        return new PlaylistDto(1L, "Ma playlist", type, null, LocalDateTime.now(), List.of(track));
+        return new PlaylistDto(1L, "Ma playlist", type, null, LocalDateTime.now(), "user@sonora.com", List.of(track));
     }
 
     private PlaylistDto emptyDto(PlaylistType type) {
-        return new PlaylistDto(1L, "Ma playlist", type, null, LocalDateTime.now(), List.of());
+        return new PlaylistDto(1L, "Ma playlist", type, null, LocalDateTime.now(), "user@sonora.com", List.of());
     }
 
 

@@ -11,6 +11,7 @@ public record TrackDto(
         Mood mood,
         String filePath,
         Long albumId,
-        Long artistId
+        Long artistId,
+        String createdByEmail
 ) {
 }

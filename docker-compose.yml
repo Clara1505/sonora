@@ -205,6 +205,8 @@ services:
       AUDIO_STORAGE_PATH: /app/audio
       SPOTIFY_CLIENT_ID: ${SPOTIFY_CLIENT_ID}
       SPOTIFY_CLIENT_SECRET: ${SPOTIFY_CLIENT_SECRET}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@sonora.com}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-Admin1234!}
     volumes:
       - audio-data:/app/audio
     ports:

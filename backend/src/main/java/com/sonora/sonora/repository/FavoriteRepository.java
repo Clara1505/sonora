@@ -12,4 +12,5 @@ public interface FavoriteRepository extends JpaRepository<Favorite, Long> {
     List<Favorite> findByUserEmail(String email);
     Optional<Favorite> findByUserEmailAndTrackId(String email, Long trackId);
     boolean existsByUserEmailAndTrackId(String email, Long trackId);
+    void deleteByTrackId(Long trackId);
 }

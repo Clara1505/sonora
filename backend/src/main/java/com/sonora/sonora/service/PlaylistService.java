@@ -63,6 +63,13 @@ public class PlaylistService {
     }
 
     @Transactional(readOnly = true)
+    public List<PlaylistDto> getAllPlaylists() {
+        return playlistRepository.findAll().stream()
+                .map(this::toDto)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
     public PlaylistDto getById(Long id, String userEmail) {
         Playlist playlist = findOwnedPlaylist(id, userEmail);
         return toDto(playlist);
@@ -70,6 +77,12 @@ public class PlaylistService {
 
     public void delete(Long id, String userEmail) {
         Playlist playlist = findOwnedPlaylist(id, userEmail);
+        playlistRepository.delete(playlist);
+    }
+
+    public void adminDelete(Long id) {
+        Playlist playlist = playlistRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Playlist not found: " + id));
         playlistRepository.delete(playlist);
     }
 
@@ -121,6 +134,7 @@ public class PlaylistService {
                 playlist.getType(),
                 playlist.getImageUrl(),
                 playlist.getCreatedAt(),
+                playlist.getUser().getEmail(),
                 tracks
         );
     }

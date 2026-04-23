@@ -48,6 +48,10 @@ export class AuthService {
     return this.currentUserSubject.value?.role === 'ADMIN';
   }
 
+  get currentUserValue(): User | null {
+    return this.currentUserSubject.value;
+  }
+
   private saveSession(response: AuthResponse): void {
     localStorage.setItem(this.TOKEN_KEY, response.token);
     localStorage.setItem(this.USER_KEY, JSON.stringify({

@@ -94,6 +94,68 @@
     }
   }
 
+  .stats-grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+
+    .stat-card {
+      mat-card-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: 1.5rem 1rem;
+        gap: 8px;
+
+        mat-icon {
+          font-size: 2rem;
+          width: 2rem;
+          height: 2rem;
+          color: #7c4dff;
+        }
+
+        .stat-value {
+          font-size: 1.5rem;
+          font-weight: 700;
+        }
+
+        .stat-label {
+          font-size: 0.8rem;
+          color: #888;
+        }
+      }
+    }
+  }
+
+  // ── Admin stats ───────────────────────────────
+  .admin-section {
+    margin-top: 2rem;
+
+    h2 {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 1.2rem;
+      margin-bottom: 1rem;
+      color: #7c4dff;
+
+      mat-icon { font-size: 1.3rem; width: 1.3rem; height: 1.3rem; }
+    }
+
+    .admin-link-card {
+      .stat-link {
+        color: #7c4dff;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.9rem;
+
+        &:hover { text-decoration: underline; }
+      }
+    }
+  }
+
   // ── Historique ────────────────────────────────
   .history-section {
     h2 {

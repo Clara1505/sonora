@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './guards/auth-guard';
+import { adminGuard } from './guards/admin-guard';
 
 export const routes: Routes = [
   {
@@ -38,6 +39,11 @@ export const routes: Routes = [
     path: 'favorites',
     loadComponent: () => import('./pages/favorites/favorites').then(m => m.Favorites),
     canActivate: [authGuard],
+  },
+  {
+    path: 'admin/users',
+    loadComponent: () => import('./pages/admin-users/admin-users').then(m => m.AdminUsers),
+    canActivate: [adminGuard],
   },
   {
     path: 'upload',

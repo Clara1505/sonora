@@ -14,6 +14,10 @@ export class PlaylistService {
     return this.http.get<Playlist[]>(this.API_URL);
   }
 
+  getAllAdmin(): Observable<Playlist[]> {
+    return this.http.get<Playlist[]>(`${this.API_URL}/all`);
+  }
+
   getById(id: number): Observable<Playlist> {
     return this.http.get<Playlist>(`${this.API_URL}/${id}`);
   }

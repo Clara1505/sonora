@@ -15,6 +15,8 @@ import { TrackService } from '../../services/track';
 import { ArtistService } from '../../services/artist';
 import { PlayerService } from '../../services/player';
 import { FavoriteService } from '../../services/favorite';
+import { AuthService } from '../../services/auth';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { forkJoin } from 'rxjs';
 
 @Component({
@@ -32,6 +34,7 @@ import { forkJoin } from 'rxjs';
     MatSelectModule,
     MatChipsModule,
     MatProgressSpinnerModule,
+    MatSnackBarModule,
   ],
   templateUrl: './catalogue.html',
   styleUrl: './catalogue.scss'
@@ -42,6 +45,8 @@ export class Catalogue implements OnInit {
   artistMap: Map<number, string> = new Map();
   favoriteIds: Set<number> = new Set();
   isLoading = false;
+  isAdmin = false;
+  currentUserEmail: string | null = null;
 
   searchQuery = '';
   selectedGenre: Genre | '' = '';
@@ -54,10 +59,14 @@ export class Catalogue implements OnInit {
     private trackService: TrackService,
     private artistService: ArtistService,
     private playerService: PlayerService,
-    private favoriteService: FavoriteService
+    private favoriteService: FavoriteService,
+    private authService: AuthService,
+    private snackBar: MatSnackBar
   ) {}
 
   ngOnInit(): void {
+    this.isAdmin = this.authService.isAdmin();
+    this.currentUserEmail = this.authService.currentUserValue?.email ?? null;
     this.loadTracks();
     this.loadFavorites();
   }
@@ -136,6 +145,24 @@ export class Catalogue implements OnInit {
     this.selectedGenre = '';
     this.selectedMood = '';
     this.filteredTracks = this.tracks;
+  }
+
+  canDelete(track: any): boolean {
+    return this.isAdmin || (track.createdByEmail != null && track.createdByEmail === this.currentUserEmail);
+  }
+
+  deleteTrack(track: any): void {
+    if (!confirm(`Supprimer "${track.title}" définitivement ?`)) return;
+    this.trackService.delete(track.id).subscribe({
+      next: () => {
+        this.tracks = this.tracks.filter(t => t.id !== track.id);
+        this.filteredTracks = this.filteredTracks.filter(t => t.id !== track.id);
+        this.snackBar.open(`"${track.title}" supprimé`, 'OK', { duration: 3000 });
+      },
+      error: () => {
+        this.snackBar.open('Erreur lors de la suppression', 'OK', { duration: 3000 });
+      }
+    });
   }
 
   formatDuration(seconds: number): string {
