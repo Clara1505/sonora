@@ -12,7 +12,7 @@ describe('Profile', () => {
     await TestBed.configureTestingModule({
       imports: [Profile],
       providers: [
-        provideRouter([]),
+        provideRouter([{ path: '**', redirectTo: '' }]),
         provideHttpClient(),
         provideHttpClientTesting(),
       ],
