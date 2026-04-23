@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { AuthService } from './auth';
-import { AuthResponse } from '../models/user';
+import { AuthResponse, User } from '../models/user';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -46,7 +46,7 @@ describe('AuthService', () => {
     });
 
     it('should update currentUser$ after login', () => {
-      let emittedUser: any;
+      let emittedUser!: User | null;
       service.currentUser$.subscribe(u => (emittedUser = u));
 
       service.login({ email: 'test@sonora.dev', password: 'secret' }).subscribe();
@@ -73,7 +73,7 @@ describe('AuthService', () => {
   describe('logout()', () => {
     it('should clear the token and emit null user', () => {
       localStorage.setItem('sonora_token', 'some-token');
-      let emittedUser: any = 'not-null';
+      let emittedUser!: User | null;
       service.currentUser$.subscribe(u => (emittedUser = u));
 
       service.logout();
