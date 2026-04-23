@@ -6,6 +6,8 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
@@ -20,6 +22,9 @@ public class JwtService {
 
     /** JWT expiration duration in milliseconds. */
     private final long expirationMs;
+
+    /** Logger for JwtService. */
+    private static final Logger LOG = LoggerFactory.getLogger(JwtService.class);
 
     /**
      * Creates a new JWT service.
@@ -88,6 +93,7 @@ public class JwtService {
             extractClaims(token);
             return true;
         } catch (JwtException | IllegalArgumentException e) {
+            LOG.info("Token invalide: {}", e.getMessage());
             return false;
         }
     }

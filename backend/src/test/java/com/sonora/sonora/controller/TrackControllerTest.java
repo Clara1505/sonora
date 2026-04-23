@@ -19,6 +19,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
@@ -48,9 +49,9 @@ class TrackControllerTest {
     @Test
     void shouldCreateTrack() throws Exception {
         TrackCreateUpdateDto request = new TrackCreateUpdateDto("Get Lucky", 248, Genre.POP, Mood.HAPPY, "song.mp3", null, 1L);
-        TrackDto response = new TrackDto(1L, "Get Lucky", 248, Genre.POP, Mood.HAPPY, "song.mp3", null, 1L);
+        TrackDto response = new TrackDto(1L, "Get Lucky", 248, Genre.POP, Mood.HAPPY, "song.mp3", null, 1L, null);
 
-        when(trackService.create(any(TrackCreateUpdateDto.class))).thenReturn(response);
+        when(trackService.create(any(TrackCreateUpdateDto.class), any())).thenReturn(response);
 
         mockMvc.perform(post("/api/tracks")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -62,7 +63,7 @@ class TrackControllerTest {
 
     @Test
     void shouldReadTrackById() throws Exception {
-        when(trackService.getById(1L)).thenReturn(new TrackDto(1L, "Get Lucky", 248, Genre.POP, Mood.HAPPY, "song.mp3", null, 1L));
+        when(trackService.getById(1L)).thenReturn(new TrackDto(1L, "Get Lucky", 248, Genre.POP, Mood.HAPPY, "song.mp3", null, 1L, null));
 
         mockMvc.perform(get("/api/tracks/1"))
                 .andExpect(status().isOk())
@@ -73,7 +74,7 @@ class TrackControllerTest {
     @Test
     void shouldReadAllTracks() throws Exception {
         when(trackService.getAll()).thenReturn(List.of(
-                new TrackDto(1L, "Get Lucky", 248, Genre.POP, Mood.HAPPY, "song.mp3", null, 1L)
+                new TrackDto(1L, "Get Lucky", 248, Genre.POP, Mood.HAPPY, "song.mp3", null, 1L, null)
         ));
 
         mockMvc.perform(get("/api/tracks"))
@@ -84,7 +85,7 @@ class TrackControllerTest {
     @Test
     void shouldUpdateTrack() throws Exception {
         TrackCreateUpdateDto request = new TrackCreateUpdateDto("Get Lucky Remix", 260, Genre.POP, Mood.CHILL, "song2.mp3", null, 1L);
-        TrackDto response = new TrackDto(1L, "Get Lucky Remix", 260, Genre.POP, Mood.CHILL, "song2.mp3", null, 1L);
+        TrackDto response = new TrackDto(1L, "Get Lucky Remix", 260, Genre.POP, Mood.CHILL, "song2.mp3", null, 1L, null);
 
         when(trackService.update(eq(1L), any(TrackCreateUpdateDto.class))).thenReturn(response);
 
@@ -112,7 +113,8 @@ class TrackControllerTest {
 
     @Test
     void shouldReturn404WhenDeletingMissingTrack() throws Exception {
-        doThrow(new ResourceNotFoundException("Track not found: 999")).when(trackService).delete(999L);
+        doThrow(new ResourceNotFoundException("Track not found: 999"))
+                .when(trackService).delete(eq(999L), any(), anyBoolean());
 
         mockMvc.perform(delete("/api/tracks/999"))
                 .andExpect(status().isNotFound());

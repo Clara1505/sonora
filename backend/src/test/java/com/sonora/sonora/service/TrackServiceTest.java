@@ -10,7 +10,10 @@ import com.sonora.sonora.model.enums.Genre;
 import com.sonora.sonora.model.enums.Mood;
 import com.sonora.sonora.repository.AlbumRepository;
 import com.sonora.sonora.repository.ArtistRepository;
+import com.sonora.sonora.repository.FavoriteRepository;
+import com.sonora.sonora.repository.PlaylistRepository;
 import com.sonora.sonora.repository.TrackRepository;
+import com.sonora.sonora.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -38,6 +41,15 @@ class TrackServiceTest {
 
     @Mock
     private AlbumRepository albumRepository;
+
+    @Mock
+    private FavoriteRepository favoriteRepository;
+
+    @Mock
+    private PlaylistRepository playlistRepository;
+
+    @Mock
+    private UserRepository userRepository;
 
     @InjectMocks
     private TrackService trackService;
@@ -70,7 +82,7 @@ class TrackServiceTest {
                     .build();
         });
 
-        TrackDto result = trackService.create(dto);
+        TrackDto result = trackService.create(dto, "creator@test.com");
 
         assertThat(result).isEqualTo(new TrackDto(
                 11L,
@@ -80,7 +92,8 @@ class TrackServiceTest {
                 Mood.HYPE,
                 "/tracks/one-more-time.mp3",
                 null,
-                7L
+                7L,
+                null
         ));
         verify(albumRepository, never()).findById(any());
     }
@@ -103,7 +116,7 @@ class TrackServiceTest {
         when(albumRepository.findById(3L)).thenReturn(Optional.of(album));
         when(trackRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        TrackDto result = trackService.create(dto);
+        TrackDto result = trackService.create(dto, "creator@test.com");
 
         assertThat(result.albumId()).isEqualTo(3L);
         assertThat(result.artistId()).isEqualTo(7L);
@@ -122,7 +135,7 @@ class TrackServiceTest {
                 "/tracks/track.mp3",
                 null,
                 7L
-        )))
+        ), "creator@test.com"))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("7");
 
@@ -143,7 +156,7 @@ class TrackServiceTest {
                 "/tracks/track.mp3",
                 3L,
                 7L
-        )))
+        ), "creator@test.com"))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("3");
 
@@ -178,7 +191,8 @@ class TrackServiceTest {
 
         TrackDto result = trackService.getById(1L);
 
-        assertThat(result).isEqualTo(new TrackDto(1L, "Track 1", 120, Genre.ROCK, Mood.CHILL, "one.mp3", null, 7L));
+        assertThat(result).isEqualTo(
+                new TrackDto(1L, "Track 1", 120, Genre.ROCK, Mood.CHILL, "one.mp3", null, 7L, null));
     }
 
     @Test
@@ -221,7 +235,8 @@ class TrackServiceTest {
 
         TrackDto result = trackService.update(1L, dto);
 
-        assertThat(result).isEqualTo(new TrackDto(1L, "New title", 200, Genre.POP, Mood.HYPE, "new.mp3", 3L, 8L));
+        assertThat(result).isEqualTo(
+                new TrackDto(1L, "New title", 200, Genre.POP, Mood.HYPE, "new.mp3", 3L, 8L, null));
         verify(trackRepository).save(track);
     }
 
@@ -337,18 +352,29 @@ class TrackServiceTest {
 
     @Test
     void delete_shouldRemoveTrack() {
-        when(trackRepository.existsById(1L)).thenReturn(true);
+        Track track = Track.builder()
+                .id(1L)
+                .title("Track 1")
+                .duration(120)
+                .genre(Genre.ROCK)
+                .mood(Mood.CHILL)
+                .filePath("one.mp3")
+                .artist(artist(7L))
+                .build();
+        when(trackRepository.findById(1L)).thenReturn(Optional.of(track));
 
-        trackService.delete(1L);
+        trackService.delete(1L, "admin@test.com", true);
 
+        verify(favoriteRepository).deleteByTrackId(1L);
+        verify(playlistRepository).deleteTrackFromPlaylists(1L);
         verify(trackRepository).deleteById(1L);
     }
 
     @Test
     void delete_whenMissing_shouldThrow() {
-        when(trackRepository.existsById(99L)).thenReturn(false);
+        when(trackRepository.findById(99L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> trackService.delete(99L))
+        assertThatThrownBy(() -> trackService.delete(99L, "admin@test.com", true))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("99");
 

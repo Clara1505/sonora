@@ -3,7 +3,7 @@
   <!-- ── Sidebar ── -->
   <div class="playlist-sidebar">
     <div class="sidebar-header">
-      <h2>Mes Playlists</h2>
+      <h2>{{ isAdmin ? 'Toutes les Playlists' : 'Mes Playlists' }}</h2>
       <button mat-icon-button (click)="showCreateForm = !showCreateForm" matTooltip="Nouvelle playlist">
         <mat-icon>add</mat-icon>
       </button>
@@ -78,9 +78,17 @@
           <mat-icon>{{ selectedPlaylist.type === 'SMART' ? 'auto_awesome' : 'queue_music' }}</mat-icon>
         </div>
         <div class="playlist-details">
-          <span class="type-badge" [class.smart]="selectedPlaylist.type === 'SMART'">
-            {{ selectedPlaylist.type === 'SMART' ? 'Smart Playlist' : 'Playlist Manuelle' }}
-          </span>
+          <div class="type-line">
+            <span class="type-badge" [class.smart]="selectedPlaylist.type === 'SMART'">
+              {{ selectedPlaylist.type === 'SMART' ? 'Smart Playlist' : 'Playlist Manuelle' }}
+            </span>
+            @if (selectedPlaylist.userEmail) {
+              <span class="playlist-owner">
+                <mat-icon>person_outline</mat-icon>
+                {{ selectedPlaylist.userEmail }}
+              </span>
+            }
+          </div>
           <h1>{{ selectedPlaylist.name }}</h1>
           <p>{{ selectedPlaylist.tracks.length }} titre(s) • {{ getTotalDuration(selectedPlaylist) }}</p>
           <div class="playlist-actions">
@@ -89,12 +97,13 @@
                     (click)="playTrack(selectedPlaylist.tracks[0], $event)">
               <mat-icon>play_arrow</mat-icon>
             </button>
-@if (selectedPlaylist.type === 'MANUAL') {
-              <button mat-stroked-button (click)="openAddModal()">
-                <mat-icon>playlist_add</mat-icon>
-                Ajouter des titres
-              </button>
-            }
+            <button mat-icon-button matTooltip="Lecture aléatoire">
+              <mat-icon>shuffle</mat-icon>
+            </button>
+            <button mat-stroked-button (click)="openAddModal()">
+              <mat-icon>playlist_add</mat-icon>
+              Ajouter des titres
+            </button>
           </div>
         </div>
       </div>

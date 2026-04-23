@@ -9,6 +9,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -61,6 +63,17 @@ public class PlaylistController {
     }
 
     /**
+     * Lists all playlists (admin only).
+     *
+     * @return all playlists
+     */
+    @GetMapping("/all")
+    @PreAuthorize("hasRole('ADMIN')")
+    public List<PlaylistDto> listAll() {
+        return playlistService.getAllPlaylists();
+    }
+
+    /**
      * Returns one playlist by identifier.
      *
      * @param id playlist identifier
@@ -75,17 +88,31 @@ public class PlaylistController {
     }
 
     /**
-     * Deletes a playlist.
+     * Deletes a playlist. If the authenticated user is an admin the playlist
+     * is removed globally, otherwise only the owner's playlist is deleted.
      *
      * @param id playlist identifier
      * @param email authenticated user email
+     * @param authentication authentication token (may be null)
      */
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(summary = "Delete a playlist")
-    public void delete(@PathVariable final Long id,
-                       @AuthenticationPrincipal final String email) {
-        playlistService.delete(id, email);
+    public void delete(
+            @PathVariable final Long id,
+            @AuthenticationPrincipal final String email,
+            final Authentication authentication) {
+        boolean isAdmin = false;
+        if (authentication != null) {
+            isAdmin = authentication.getAuthorities()
+                .stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        }
+        if (isAdmin) {
+            playlistService.adminDelete(id);
+        } else {
+            playlistService.delete(id, email);
+        }
     }
 
     /**

@@ -50,39 +50,66 @@ public class SecurityConfig {
             throws Exception {
         http
             .cors(cors ->
-                cors.configurationSource(corsConfigurationSource()))
-                .csrf(AbstractHttpConfigurer::disable)
-                .sessionManagement(session ->
+                cors.configurationSource(corsConfigurationSource())
+            )
+            .csrf(AbstractHttpConfigurer::disable)
+            .sessionManagement(session ->
                 session.sessionCreationPolicy(
-                    SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/tracks/*/stream").permitAll()
-                    .requestMatchers("/swagger", "/swagger/").permitAll()
-                .requestMatchers(
-                    "/swagger-ui/**",
-                    "/v3/api-docs/**"
-                ).permitAll()
-                        .requestMatchers("/api/spotify/**").permitAll()
-                        .requestMatchers("/actuator/health").permitAll()
-                        .anyRequest().authenticated()
+                    SessionCreationPolicy.STATELESS
                 )
-                .exceptionHandling(ex -> ex
+            )
+            .authorizeHttpRequests(auth -> {
+                auth.requestMatchers(
+                    "/api/auth/**"
+                ).permitAll();
+                auth.requestMatchers(
+                    "/api/tracks/*/stream"
+                ).permitAll();
+                auth.requestMatchers(
+                    "/swagger"
+                ).permitAll();
+                auth.requestMatchers(
+                    "/swagger/"
+                ).permitAll();
+                auth.requestMatchers(
+                    "/swagger-ui/**"
+                ).permitAll();
+                auth.requestMatchers(
+                    "/v3/api-docs/**"
+                ).permitAll();
+                auth.requestMatchers(
+                    "/api/spotify/**"
+                ).permitAll();
+                auth.requestMatchers(
+                    "/actuator/health"
+                ).permitAll();
+                // Endpoints admin uniquement
+                auth.requestMatchers(
+                    "/api/admin/**"
+                ).hasRole(
+                    "ADMIN"
+                );
+                auth.requestMatchers(
+                    "/api/playlists/all"
+                ).hasRole(
+                    "ADMIN"
+                );
+                auth.anyRequest().authenticated();
+            })
+            .exceptionHandling(ex -> ex
                 .authenticationEntryPoint(
                     (request, response, authException) -> {
                         response.setStatus(
                             HttpServletResponse.SC_UNAUTHORIZED);
-                            response.setContentType("application/json");
-                            response.getWriter().write(
-                                "{\"status\":401,"
-                                    + "\"message\":"
-                                    + "\"Non authentifié\"}");
+                        response.setContentType("application/json");
+                        String body = "{\"status\":401,"
+                            + "\"message\":\"Non authentifié\"}";
+                        response.getWriter().write(body);
                     })
-                )
+            )
             .addFilterBefore(
                 jwtAuthenticationFilter,
-                UsernamePasswordAuthenticationFilter
-                        .class
+                UsernamePasswordAuthenticationFilter.class
             );
 
         return http.build();
@@ -100,7 +127,11 @@ public class SecurityConfig {
         config.setAllowedMethods(
             List.of("GET", "POST", "PUT", "DELETE", "OPTIONS")
         );
-        config.setAllowedHeaders(List.of("*"));
+        // Autoriser l'en-tête Authorization pour les requêtes CORS
+        config.setAllowedHeaders(
+            List.of("Authorization", "Content-Type", "Accept"));
+        // Exposer Authorization si nécessaire côté client
+        config.setExposedHeaders(List.of("Authorization"));
         config.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source =

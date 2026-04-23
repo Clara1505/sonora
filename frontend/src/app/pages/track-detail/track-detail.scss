@@ -101,6 +101,21 @@
         }
       }
 
+      .created-by {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: #888;
+        font-size: 0.85rem;
+        margin: 0 0 1rem;
+
+        mat-icon {
+          font-size: 1rem;
+          width: 1rem;
+          height: 1rem;
+        }
+      }
+
       .track-actions {
         display: flex;
         align-items: center;

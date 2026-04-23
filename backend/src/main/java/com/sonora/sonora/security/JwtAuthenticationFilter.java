@@ -5,6 +5,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.lang.NonNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -23,6 +25,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     /** JWT service used to validate and parse tokens. */
     private final JwtService jwtService;
+
+        /** Logger for JwtAuthenticationFilter. */
+        private static final Logger LOG =
+            LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 
     /**
      * Creates a new JWT authentication filter.
@@ -61,17 +67,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (jwtService.isTokenValid(token)) {
             String email = jwtService.extractEmail(token);
             String role = jwtService.extractRole(token);
+            LOG.info("JWT valid — email={}, role={}", email, role);
 
-            UsernamePasswordAuthenticationToken authentication =
+                SimpleGrantedAuthority authority =
+                    new SimpleGrantedAuthority("ROLE_" + role);
+                List<SimpleGrantedAuthority> authorities =
+                    List.of(authority);
+
+                UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(
-                            email,
-                            null,
-                            List.of(new SimpleGrantedAuthority("ROLE_" + role))
+                        email,
+                        null,
+                        authorities
                     );
 
-                SecurityContextHolder
-                    .getContext()
-                    .setAuthentication(authentication);
+                var ctx = SecurityContextHolder.getContext();
+                ctx.setAuthentication(authentication);
         }
 
         filterChain.doFilter(request, response);

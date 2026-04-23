@@ -43,6 +43,13 @@
             }
           </div>
 
+          @if (track.createdByEmail) {
+            <p class="created-by">
+              <mat-icon>person_outline</mat-icon>
+              Ajouté par {{ track.createdByEmail }}
+            </p>
+          }
+
           <div class="track-actions">
             <button mat-fab color="primary" (click)="playTrack()">
               <mat-icon>play_arrow</mat-icon>

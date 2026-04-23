@@ -16,10 +16,17 @@
         <mat-icon>queue_music</mat-icon>
         Playlists
       </a>
-      <a mat-button routerLink="/favorites">
-        <mat-icon>favorite</mat-icon>
-        Favoris
-      </a>
+      @if (currentUser.role === 'ADMIN') {
+        <a mat-button routerLink="/admin/users">
+          <mat-icon>group</mat-icon>
+          Utilisateurs
+        </a>
+      } @else {
+        <a mat-button routerLink="/favorites">
+          <mat-icon>favorite</mat-icon>
+          Favoris
+        </a>
+      }
       <a mat-icon-button routerLink="/upload" matTooltip="Uploader un titre">
         <mat-icon>cloud_upload</mat-icon>
       </a>
